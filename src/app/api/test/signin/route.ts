@@ -10,16 +10,16 @@ export async function GET(req: Request) {
   try {
     const origin = new URL(req.url).origin;
 
-    const email = 'e2e@example.com';
+    const username = 'e2euser';
     const name = 'E2E User';
     const passwordPlain = 'password123';
 
     // ensure user exists
     const hash = await bcrypt.hash(passwordPlain, 10);
     await prisma.user.upsert({
-      where: { email },
+      where: { username },
       update: { name, password: hash, role: 'ADMIN' },
-      create: { email, name, password: hash, role: 'ADMIN' },
+      create: { username, name, password: hash, role: 'ADMIN' },
     });
 
     // ensure a test supplier exists for E2E
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
           <script>
             (async function(){
               try {
-                const email = ${JSON.stringify(email)};
+                const username = ${JSON.stringify(username)};
                 const password = ${JSON.stringify(passwordPlain)};
 
                 // fetch csrf token from client so cookies match
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
                 const csrfJson = await csrfRes.json().catch(()=>({}));
                 const csrfToken = csrfJson?.csrfToken ?? '';
 
-                const body = new URLSearchParams({ csrfToken, email, password, callbackUrl: '/' });
+                const body = new URLSearchParams({ csrfToken, username, password, callbackUrl: '/' });
 
                 await fetch('/api/auth/callback/credentials', {
                   method: 'POST',
