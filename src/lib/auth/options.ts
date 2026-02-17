@@ -36,8 +36,12 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
+          console.log("❌ Auth Failed: User not found for username:", credentials.username);
           return null;
         }
+
+        console.log("✅ Auth: User found:", user.username, "Role:", user.role);
+        console.log("🔑 Auth: Verifying password...");
 
         const valid = await bcrypt.compare(
           credentials.password,
@@ -45,14 +49,17 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!valid) {
+          console.log("❌ Auth Failed: Password mismatch for user:", user.username);
           return null;
         }
 
         // ⛔ Check Active Status
         if (!user.isActive) {
+          console.log("❌ Auth Failed: User inactive:", user.username);
           throw new Error("Akun dinonaktifkan. Hubungi Administrator.");
         }
 
+        console.log("✅ Auth Success:", user.username);
         return {
           id: user.id,
           name: user.name,
