@@ -1,0 +1,73 @@
+name: Playwright E2E
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rwa_garage_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rwa_garage_test -h localhost"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm playwright:install
+
+      - name: Set CI env (NEXTAUTH_SECRET, DB, PLAYWRIGHT)
+        run: |
+          # NEXTAUTH_SECRET may be provided via repo secrets; if not, generate one
+          if [ -z "$NEXTAUTH_SECRET" ]; then
+            echo "NEXTAUTH_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          else
+            echo "NEXTAUTH_SECRET=$NEXTAUTH_SECRET" >> $GITHUB_ENV
+          fi
+          echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/rwa_garage_test" >> $GITHUB_ENV
+          echo "PLAYWRIGHT=1" >> $GITHUB_ENV
+          echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
+        env:
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+
+      - name: Wait for Postgres
+        run: npx wait-on tcp:5432 --timeout 120000
+
+      - name: Apply Prisma migrations
+        run: npx prisma migrate deploy
+
+      - name: Run Playwright tests
+        run: pnpm test:e2e
+        env:
+          CI: true
+
+      - name: Upload Playwright report (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report

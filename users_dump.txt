@@ -1,0 +1,68 @@
+[
+  {
+    "id": "fee0f865-e461-42c5-957d-08aef808f719",
+    "name": "Super Admin",
+    "username": "superadmin",
+    "password": "$2b$10$ge0cpUOjmbt5QmWJhg7uXuIL7HmYgo3mTZfHoCHlbp3vHulXdOGxi",
+    "role": "SUPERADMIN",
+    "isActive": true,
+    "createdById": null,
+    "createdAt": "2026-01-12T09:18:06.564Z",
+    "updatedAt": "2026-01-12T09:18:06.564Z"
+  },
+  {
+    "id": "f25e4d28-86b4-400a-b307-28235be566f2",
+    "name": "Admin RWA",
+    "username": "admin",
+    "password": "$2b$10$ge0cpUOjmbt5QmWJhg7uXuIL7HmYgo3mTZfHoCHlbp3vHulXdOGxi",
+    "role": "ADMIN",
+    "isActive": true,
+    "createdById": "fee0f865-e461-42c5-957d-08aef808f719",
+    "createdAt": "2026-01-12T09:18:06.572Z",
+    "updatedAt": "2026-01-12T09:18:06.572Z"
+  },
+  {
+    "id": "8ad9676a-a4bb-4949-b830-f1ae8f152356",
+    "name": "Mekanik Satu",
+    "username": "mekanik1",
+    "password": "$2b$10$ge0cpUOjmbt5QmWJhg7uXuIL7HmYgo3mTZfHoCHlbp3vHulXdOGxi",
+    "role": "MEKANIK",
+    "isActive": true,
+    "createdById": "f25e4d28-86b4-400a-b307-28235be566f2",
+    "createdAt": "2026-01-12T09:18:06.575Z",
+    "updatedAt": "2026-01-12T09:18:06.575Z"
+  },
+  {
+    "id": "4ebd640e-f1ed-4e81-b6c2-391c27068a97",
+    "name": "Mekanik Dua",
+    "username": "mekanik2",
+    "password": "$2b$10$ge0cpUOjmbt5QmWJhg7uXuIL7HmYgo3mTZfHoCHlbp3vHulXdOGxi",
+    "role": "MEKANIK",
+    "isActive": true,
+    "createdById": "f25e4d28-86b4-400a-b307-28235be566f2",
+    "createdAt": "2026-01-12T09:18:06.577Z",
+    "updatedAt": "2026-01-12T09:18:06.577Z"
+  },
+  {
+    "id": "7dff3e1a-7c16-45d9-8dd4-9831a26e1573",
+    "name": "Trisya Putri Anggarini",
+    "username": "trisya.putri",
+    "password": "$2b$10$ts2ea0h3m1wGRHb.BDKIwuzlYhqXtfAjC/jROy7dG.whjvS4yUS.m",
+    "role": "ADMIN",
+    "isActive": true,
+    "createdById": "fee0f865-e461-42c5-957d-08aef808f719",
+    "createdAt": "2026-01-12T09:51:39.570Z",
+    "updatedAt": "2026-01-12T09:51:39.570Z"
+  },
+  {
+    "id": "2d316c69-a784-4838-ad1f-8d4284869484",
+    "name": "Erwin",
+    "username": "Erwin Wahyudi",
+    "password": "$2b$10$gVWvlzNBbCeJin.tM9h/Qe1RmuntY2jKHr8m6IL1.A8ELV/Uia4ce",
+    "role": "SUPERADMIN",
+    "isActive": true,
+    "createdById": "fee0f865-e461-42c5-957d-08aef808f719",
+    "createdAt": "2026-01-12T11:18:44.593Z",
+    "updatedAt": "2026-01-12T11:18:44.593Z"
+  }
+]
