@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 /* ================= POST (CREATE VISIT) ================= */
 
 export async function POST(req: Request) {
-  console.log("🔥 POST /api/visits HIT");
+
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });

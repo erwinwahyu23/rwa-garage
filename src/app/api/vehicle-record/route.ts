@@ -60,6 +60,6 @@ export async function GET(req: Request) {
     );
   }
 
-  // console.log("VEHICLE RECORD:", JSON.stringify(vehicle, null, 2));
+
   return NextResponse.json(vehicle);
 }

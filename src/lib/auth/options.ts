@@ -22,33 +22,19 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("➡️ Authorize called. Credentials:", JSON.stringify(credentials));
-
         if (!credentials?.username || !credentials?.password) {
-          console.log("❌ Credentials missing");
           return null;
         }
 
-        let user;
-        try {
-          console.log("🔍 Querying database for:", credentials.username);
-          user = await prisma.user.findUnique({
-            where: {
-              username: credentials.username,
-            },
-          });
-        } catch (dbError) {
-          console.error("🔥 CRITICAL PRISMA ERROR:", dbError);
-          return null;
-        }
+        const user = await prisma.user.findUnique({
+          where: {
+            username: credentials.username,
+          },
+        });
 
         if (!user) {
-          console.log("❌ Auth Failed: User not found for username:", credentials.username);
           return null;
         }
-
-        console.log("✅ Auth: User found:", user.username, "Role:", user.role);
-        console.log("🔑 Auth: Verifying password...");
 
         const valid = await bcrypt.compare(
           credentials.password,
@@ -56,22 +42,20 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!valid) {
-          console.log("❌ Auth Failed: Password mismatch for user:", user.username);
           return null;
         }
 
         // ⛔ Check Active Status
         if (!user.isActive) {
-          console.log("❌ Auth Failed: User inactive:", user.username);
           throw new Error("Akun dinonaktifkan. Hubungi Administrator.");
         }
 
-        console.log("✅ Auth Success:", user.username);
         return {
           id: user.id,
           name: user.name,
           username: user.username,
           role: user.role,
+          isActive: user.isActive,
         };
       },
     }),
@@ -81,17 +65,17 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
-        token.username = (user as any).username;
+        token.role = user.role;
+        token.username = user.username;
       }
       return token;
     },
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        (session.user as any).username = token.username as string;
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.username = token.username;
       }
       return session;
     },

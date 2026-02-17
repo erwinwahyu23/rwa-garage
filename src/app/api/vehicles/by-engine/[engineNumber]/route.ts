@@ -18,7 +18,7 @@ export async function GET(
   const normalizedEngineNumber = decodeURIComponent(engineNumber).trim();
 
   // 🔍 DEBUG (sementara)
-  console.log("ENGINE PARAM:", `"${normalizedEngineNumber}"`);
+
 
   const vehicle = await prisma.vehicle.findFirst({
     where: {

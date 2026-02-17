@@ -48,6 +48,11 @@ export default function InventoryCreateDialog({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [addingCategoryLoading, setAddingCategoryLoading] = useState(false);
 
+  // inline add unit
+  const [addingUnit, setAddingUnit] = useState(false);
+  const [newUnitName, setNewUnitName] = useState("");
+  const [addingUnitLoading, setAddingUnitLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -91,7 +96,15 @@ export default function InventoryCreateDialog({
     fetch("/api/units")
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) setUnits(data);
+        if (Array.isArray(data)) {
+          // New structure is { name, id, usage, isStored }
+          // Old was string[]
+          // We need string[] here for now
+          const names = data.map(d => typeof d === 'string' ? d : d.name);
+          // Deduplicate just in case
+          const unique = Array.from(new Set(names)) as string[];
+          setUnits(unique);
+        }
       })
       .catch(() => { });
 
@@ -262,19 +275,97 @@ export default function InventoryCreateDialog({
           <div>
             <label className="text-sm">Satuan</label>
             <div className="flex gap-2">
-              <Combobox
-                options={units.map(u => ({ id: u, name: u }))}
-                value={watch("unit")}
-                onChange={(val) => setValue("unit", val || "")}
-                onInput={(val) => {
-                  // Allow custom input. If it matches existing (case-insensitive), auto-select it.
-                  if (!val) return;
-                  const match = units.find(u => u.toLowerCase() === val.toLowerCase());
-                  setValue("unit", match || val); // Use match case if found, else custom
-                }}
-                placeholder="Pilih atau ketik satuan..."
-                className="w-full flex-1"
-              />
+              <div className="flex-1">
+                <Combobox
+                  options={units.map(u => ({ id: u, name: u }))}
+                  value={watch("unit")}
+                  onChange={(val) => setValue("unit", val || "")}
+                  onInput={(val) => {
+                    if (!val) return;
+                    const match = units.find(u => u.toLowerCase() === val.toLowerCase());
+                    setValue("unit", match || val);
+                  }}
+                  placeholder="Pilih atau ketik satuan..."
+                  className="w-full flex-1"
+                />
+              </div>
+
+              {!addingUnit ? (
+                <button
+                  type="button"
+                  className="text-xs text-blue-600 underline"
+                  onClick={() => setAddingUnit(true)}
+                >
+                  Tambah
+                </button>
+              ) : (
+                <div className="flex gap-1 items-center">
+                  <input
+                    className="p-1 border rounded text-sm w-24"
+                    placeholder="Satuan..."
+                    value={newUnitName}
+                    onChange={(e) => setNewUnitName(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="text-xs bg-blue-600 text-white px-2 py-1 rounded"
+                    disabled={addingUnitLoading}
+                    onClick={async () => {
+                      if (!newUnitName) return;
+
+                      // Check if already exists (case-insensitive)
+                      const existing = units.find(u => u.toLowerCase() === newUnitName.trim().toLowerCase());
+                      if (existing) {
+                        setValue("unit", existing);
+                        setNewUnitName("");
+                        setAddingUnit(false);
+                        toast.info(`Satuan '${existing}' sudah ada, menggunakan data yang tersedia.`);
+                        return;
+                      }
+
+                      setAddingUnitLoading(true);
+                      try {
+                        const res = await fetch("/api/units", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ name: newUnitName }),
+                        });
+                        if (!res.ok) throw new Error();
+                        const created = await res.json();
+
+                        setUnits((s) => {
+                          // Prevent duplicate add
+                          if (s.some(u => u.toLowerCase() === created.name.toLowerCase())) {
+                            return s;
+                          }
+                          return [...s, created.name].sort();
+                        });
+
+                        setValue("unit", created.name);
+                        setNewUnitName("");
+                        setAddingUnit(false);
+                        toast.success("Satuan ditambahkan");
+                      } catch {
+                        toast.error("Gagal menambahkan satuan");
+                      } finally {
+                        setAddingUnitLoading(false);
+                      }
+                    }}
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs text-gray-600"
+                    onClick={() => {
+                      setAddingUnit(false);
+                      setNewUnitName("");
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
             {errors.unit && (
               <div className="text-sm text-red-500">{errors.unit.message}</div>

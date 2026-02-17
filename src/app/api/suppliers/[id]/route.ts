@@ -11,7 +11,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } | P
     const id = resolved?.id;
 
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
-    console.log(`Updating supplier ${id} with`, body);
+
     if (!body || !body.name) return NextResponse.json({ error: 'name required' }, { status: 400 });
 
     const updated = await prisma.supplier.update({ where: { id }, data: { name: body.name, contact: body.contact ?? undefined } });

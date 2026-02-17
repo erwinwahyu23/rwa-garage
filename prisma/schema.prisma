@@ -48,6 +48,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([createdById])
 }
 
 model Vehicle {
@@ -71,6 +73,7 @@ model Vehicle {
   @@index([ownerName])
   @@index([brand])
   @@index([licensePlate])
+  @@index([createdById])
 }
 
 model Visit {
@@ -114,6 +117,7 @@ model Visit {
   @@index([createdAt])
   @@index([vehicleId])
   @@index([mechanicId])
+  @@index([createdById])
 }
 
 model Invoice {
@@ -157,6 +161,13 @@ model Category {
   spareParts SparePart[]
 }
 
+model Unit {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model SparePart {
   id         String           @id @default(cuid())
   code       String           @unique
@@ -179,6 +190,9 @@ model SparePart {
   visitItems VisitItem[]
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([supplierId])
 }
 
 model SellPrice {
@@ -231,6 +245,7 @@ model Purchase {
 
   @@index([sparePartId])
   @@index([supplierId])
+  @@index([createdBy])
 }
 
 model AuditLog {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import InventoryCreateDialog from "./InventoryCreateDialog";
 import InventoryEditDialog from "./InventoryEditDialog";
+import InventoryUnitSettingsDialog from "./InventoryUnitSettingsDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ export default function MasterItemsPageClient() {
   // Dialog State
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [unitOpen, setUnitOpen] = useState(false);
   const [selected, setSelected] = useState<any | undefined>(undefined);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -144,6 +146,9 @@ export default function MasterItemsPageClient() {
             <Button onClick={() => setCreateOpen(true)} disabled={!isAdmin}>
               <Plus className="h-4 w-4 mr-2" />
               Tambah Item
+            </Button>
+            <Button variant="secondary" onClick={() => setUnitOpen(true)} disabled={!isAdmin}>
+              Satuan
             </Button>
           </div>
         </div>
@@ -261,6 +266,7 @@ export default function MasterItemsPageClient() {
       </div>
 
       <InventoryCreateDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={handleCreated} />
+      <InventoryUnitSettingsDialog open={unitOpen} onOpenChange={setUnitOpen} />
       <InventoryEditDialog open={editOpen} onOpenChange={setEditOpen} item={selected} onUpdated={handleUpdated} minimal />
       <ConfirmationDialog
         open={confirmDeleteOpen}

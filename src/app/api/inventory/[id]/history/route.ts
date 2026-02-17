@@ -23,7 +23,7 @@ export async function GET(
     }
 
     const sparePartId = params.id;
-    console.log(`[API HISTORY] Starting for ID: ${sparePartId}`);
+
 
     try {
         // 1. Get Current Stock Info
