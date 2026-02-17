@@ -22,15 +22,25 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("➡️ Authorize called. Credentials:", JSON.stringify(credentials));
+
         if (!credentials?.username || !credentials?.password) {
+          console.log("❌ Credentials missing");
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            username: credentials.username,
-          },
-        });
+        let user;
+        try {
+          console.log("🔍 Querying database for:", credentials.username);
+          user = await prisma.user.findUnique({
+            where: {
+              username: credentials.username,
+            },
+          });
+        } catch (dbError) {
+          console.error("🔥 CRITICAL PRISMA ERROR:", dbError);
+          return null;
+        }
 
         if (!user) {
           console.log("❌ Auth Failed: User not found for username:", credentials.username);
