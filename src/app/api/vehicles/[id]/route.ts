@@ -59,6 +59,13 @@ export async function GET(
       return NextResponse.json({ message: "Vehicle not found" }, { status: 404 });
     }
 
+    // DEBUG: Check if licensePlate is present
+    console.log(`[DEBUG] GET /api/vehicles/${id}`, {
+      engineNumber: vehicleWithVisits.engineNumber,
+      licensePlate: vehicleWithVisits.licensePlate,
+      raw: vehicleWithVisits
+    });
+
     const { visits, ...vehicle } = vehicleWithVisits;
     return NextResponse.json({ vehicle, visits });
   } catch (error) {

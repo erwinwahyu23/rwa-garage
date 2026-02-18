@@ -133,7 +133,7 @@ export default function MekanikWorklistPage() {
   async function handleKerjakan(id: string) {
     // Optimistic Update
     const updatedVisits = visits.map((v) =>
-      v.id === id ? { ...v, status: "PROSES" as const } : v
+      v.id === id ? { ...v, mechanicId: session?.user?.id, mechanic: { name: session?.user?.name || "Saya" } } : v
     );
     setVisits(updatedVisits);
     mutate(updatedVisits, false);
@@ -446,6 +446,7 @@ export default function MekanikWorklistPage() {
           vehicle={{
             id: selectedVisit.vehicle.id,
             engineNumber: selectedVisit.vehicle.engineNumber,
+            licensePlate: selectedVisit.vehicle.licensePlate, // Added
             brand: selectedVisit.vehicle.brand,
             model: selectedVisit.vehicle.model,
             ownerName: selectedVisit.vehicle.ownerName,

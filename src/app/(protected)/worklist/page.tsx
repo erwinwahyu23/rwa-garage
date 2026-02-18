@@ -66,6 +66,7 @@ type Visit = {
   vehicle: {
     id: string;
     engineNumber: string;
+    licensePlate?: string | null;
     brand: string;
     model: string;
     ownerName: string | null;
@@ -481,7 +482,6 @@ export default function WorklistPage() {
                           }}>
                             Edit Kendaraan
                           </DropdownMenuItem>
-
                           {isAdmin && v.status === "ANTRI" && (
                             <DropdownMenuItem
                               className="text-red-600 focus:text-red-600 focus:bg-red-50"
@@ -549,6 +549,7 @@ export default function WorklistPage() {
           vehicle={{
             id: selectedVisit.vehicle.id,
             engineNumber: selectedVisit.vehicle.engineNumber,
+            licensePlate: selectedVisit.vehicle.licensePlate, // Added
             brand: selectedVisit.vehicle.brand,
             model: selectedVisit.vehicle.model,
             ownerName: selectedVisit.vehicle.ownerName,
