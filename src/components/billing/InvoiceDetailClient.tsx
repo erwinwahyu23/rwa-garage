@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Printer, CreditCard, Ban, FileText, AlertCircle } from "lucide-react";
+import Image from "next/image";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -67,17 +68,17 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
 
     // Update document title for Print/PDF Filename
     useEffect(() => {
-        const sanitize = (text: string) => text.replace(/[^\w\-]/g, '');
-
         if (invoice && visit?.vehicle) {
-            const plate = sanitize(visit.vehicle.licensePlate?.replace(/\s+/g, '') || "NOPLAT").toUpperCase();
+            const plate = (visit.vehicle.licensePlate || "NOPLAT").replace(/\s+/g, '').toUpperCase();
+            const parts = [
+                invoice.invoiceNumber,
+                visit.vehicle.brand,
+                visit.vehicle.model
+            ].filter(Boolean).join('-').replace(/\s+/g, '-'); // e.g. INV-123-Honda-Jazz-RS
 
-            // Model: Replace spaces with dashes, then sanitize
-            let model = `${visit.vehicle.brand || ''}-${visit.vehicle.model || ''}`.replace(/\s+/g, '-');
-            model = sanitize(model);
-
-            // Combine
-            document.title = `${invoice.invoiceNumber}-${model}-${plate}`;
+            document.title = `${parts}-${plate}`;
+        } else if (invoice?.invoiceNumber) {
+            document.title = invoice.invoiceNumber;
         } else {
             document.title = "Invoice - RWA Garage";
         }
@@ -333,271 +334,345 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
             </div>
 
             {/* Invoice Card */}
-            <Card id="invoice-printable" className="print:shadow-none print:border-none">
-                <CardHeader className="flex flex-row justify-between items-start border-b pb-6">
-                    <div>
-                        <CardTitle className="text-2xl font-bold">INVOICE</CardTitle>
-                        <div className="text-sm text-muted-foreground mt-1 text-black">
-                            {invoice ? invoice.invoiceNumber : "DRAFT (Belum Disimpan)"}
-                        </div>
-                        <div className="mt-4 text-sm">
-                            <div className="font-semibold">RWA GARAGE</div>
-                            <div>Jl. Pandawa 1, Legian, Kec. Kuta, Kabupaten Badung</div>
-                            <div>Bali (80361)</div>
-                        </div>
-                    </div>
-                    <div className="text-right text-sm">
-                        <div className="space-y-1">
-                            <div className="flex justify-end gap-4">
-                                <span className="text-muted-foreground">Tanggal:</span>
-                                <span className="font-medium">{format(new Date(), "dd/MM/yyyy", { locale: idLocale })}</span>
-                            </div>
-                            <div className="flex justify-end gap-4">
-                                <span className="text-muted-foreground">Kunjungan:</span>
-                                <span className="font-medium">{format(new Date(visit.visitDate), "dd/MM/yyyy", { locale: idLocale })}</span>
-                            </div>
-                            <div className="flex justify-end gap-4">
-                                <span className="text-muted-foreground">No. Polisi:</span>
-                                <span className="font-medium">{visit.vehicle?.licensePlate || "-"}</span>
-                            </div>
-                            <div className="flex justify-end gap-4">
-                                <span className="text-muted-foreground">Kendaraan:</span>
-                                <span className="font-medium">{visit.vehicle?.brand} {visit.vehicle?.model}</span>
-                            </div>
-                            <div className="flex justify-end gap-4">
-                                <span className="text-muted-foreground">Mekanik:</span>
-                                <span className="font-medium">{visit.mechanic?.name || "-"}</span>
-                            </div>
-                        </div>
-                        <div className="mt-4">
-                            {isCreated && (
-                                <Badge variant={isPaid ? "default" : isVoid ? "secondary" : "destructive"} className="text-lg px-4 py-1">
-                                    {invoice.status}
-                                </Badge>
-                            )}
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="pt-6">
-
-                    {/* Visit Diagnosis Details (Helper for Input) */}
-                    {(!isCreated && isAdmin) && (
-                        <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg space-y-3 print:hidden">
-                            <h3 className="font-semibold text-blue-800 flex items-center gap-2">
-                                <FileText className="h-4 w-4" /> Detail Pengerjaan (Referensi)
-                            </h3>
-                            <div className="space-y-4 text-sm">
-                                {visit.keluhan && (
-                                    <div>
-                                        <span className="font-semibold text-gray-700 block mb-1">Keluhan Awal:</span>
-                                        <div className="bg-white p-2 rounded border text-gray-800">
-                                            {visit.keluhan}
+            <Card id="invoice-printable" className="print:shadow-none print:border-none flex flex-col print:min-h-0 print:block">
+                {/* Wrap everything in a main table to allow repeating headers on print */}
+                <table className="w-full">
+                    {/* --- REPEATING HEADER --- */}
+                    <thead className="print:table-header-group">
+                        <tr>
+                            <td>
+                                <div className="flex justify-between items-center mb-6 px-6 pt-6 print:px-0">
+                                    <div className="flex items-center gap-4">
+                                        <Image src="/logo.png" alt="RWA Garage Logo" width={60} height={60} className="object-contain" />
+                                        <div>
+                                            <div className="font-bold text-xl text-slate-800">RWA GARAGE</div>
+                                            <div className="text-xs text-muted-foreground font-small">Jl. Pandawa 1, Legian, Kec. Kuta, Kabupaten Badung</div>
+                                            <div className="text-xs text-muted-foreground font-small">Bali - 80361</div>
                                         </div>
                                     </div>
-                                )}
-                                <div>
-                                    <span className="font-semibold text-gray-700 block mb-1">Tindakan / Perbaikan:</span>
-                                    <div className="bg-white p-2 rounded border text-gray-800 whitespace-pre-wrap">
-                                        {visit.perbaikan || "-"}
+                                    <div className="text-right">
+                                        <h1 className="text-4xl font-extrabold tracking-widest text-slate-800">INVOICE</h1>
                                     </div>
                                 </div>
-                                <div>
-                                    <span className="font-semibold text-gray-700 block mb-1">Sparepart Digunakan:</span>
-                                    <div className="bg-white p-2 rounded border text-gray-800 whitespace-pre-wrap">
-                                        {visit.items && visit.items.length > 0 ? (
-                                            <ul className="list-disc list-inside">
-                                                {visit.items.map((item: any, idx: number) => (
-                                                    <li key={idx}>
-                                                        {item.quantity}x {item.sparePart?.name || item.name || "Item"}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        ) : (
-                                            <div className="text-gray-500 italic">- Tidak ada sparepart -</div>
-                                        )}
 
-                                        {/* Show warning if legacy text exists but structured items are empty (or even if they exist, to be safe, but mostly if empty as per concept) */}
-                                        {visit.sparepart && (!visit.items || visit.items.length === 0) && (
-                                            <div className="mt-2 text-sm text-red-600">
-                                                * Data lama: {visit.sparepart} (Harap input ulang di atas jika perlu restock)
+                                <div className="px-6 pb-6 border-b print:px-0">
+                                    <div className="grid grid-cols-2 gap-8 text-sm">
+                                        {/* Left Column */}
+                                        <div className="space-y-1">
+                                            <div className="grid grid-cols-[110px_auto_1fr] items-center">
+                                                <span className="text-gray-600">No. Invoice</span>
+                                                <span className="font-medium px-2">:</span>
+                                                <span className="font-medium">{invoice ? invoice.invoiceNumber : "DRAFT"}</span>
                                             </div>
-                                        )}
+                                            <div className="grid grid-cols-[110px_auto_1fr] items-center">
+                                                <span className="text-gray-600">Pelanggan</span>
+                                                <span className="font-medium px-2">:</span>
+                                                <span className="font-medium">{visit.vehicle?.ownerName || "-"}</span>
+                                            </div>
+                                            {visit.vehicle?.phoneNumber && (
+                                                <div className="grid grid-cols-[110px_auto_1fr] items-center">
+                                                    <span className="text-gray-600">No. Telp</span>
+                                                    <span className="font-medium px-2">:</span>
+                                                    <span className="font-medium">{visit.vehicle.phoneNumber}</span>
+                                                </div>
+                                            )}
+                                            <div className="grid grid-cols-[110px_auto_1fr] items-center">
+                                                <span className="text-gray-600">Kendaraan</span>
+                                                <span className="font-medium px-2">:</span>
+                                                <span className="font-medium">{visit.vehicle?.brand} {visit.vehicle?.model}</span>
+                                            </div>
+                                            <div className="grid grid-cols-[110px_auto_1fr] items-center">
+                                                <span className="text-gray-600">No. Polisi</span>
+                                                <span className="font-medium px-2">:</span>
+                                                <span className="font-medium">{visit.vehicle?.licensePlate || "-"}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Right Column */}
+                                        <div className="space-y-1">
+                                            <div className="grid grid-cols-[120px_auto_1fr] items-center">
+                                                <span className="text-gray-600">Tanggal Cetak</span>
+                                                <span className="font-medium px-2">:</span>
+                                                <span className="font-medium">{format(new Date(), "dd-MMM-yyyy / HH:mm")}</span>
+                                            </div>
+                                            <div className="grid grid-cols-[120px_auto_1fr] items-center">
+                                                <span className="text-gray-600">Kunjungan</span>
+                                                <span className="font-medium px-2">:</span>
+                                                <span className="font-medium">{format(new Date(visit.visitDate), "dd-MMM-yyyy", { locale: idLocale })}</span>
+                                            </div>
+                                            <div className="grid grid-cols-[120px_auto_1fr] items-center">
+                                                <span className="text-gray-600">Mekanik</span>
+                                                <span className="font-medium px-2">:</span>
+                                                <span className="font-medium">{visit.mechanic?.name || "-"}</span>
+                                            </div>
+                                            <div className="grid grid-cols-[120px_auto_1fr] items-center">
+                                                <span className="text-gray-600">Status Bayar</span>
+                                                <span className="font-medium px-2">:</span>
+                                                <span className="font-medium">
+                                                    {isCreated ? (
+                                                        <Badge variant={isPaid ? "default" : isVoid ? "secondary" : "destructive"}
+                                                            className={`px-2 py-0 h-5 text-[10px] leading-tight ${invoice.status === 'PENDING' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200 print:bg-amber-100 print:text-amber-700' : ''}`}
+                                                            style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}
+                                                        >
+                                                            {invoice.status === 'PENDING' ? 'UNPAID' : invoice.status}
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] leading-tight" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>DRAFT</Badge>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    )}
+                            </td>
+                        </tr>
+                    </thead>
 
-                    {/* Items Table */}
-                    <div className="min-h-[200px]">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b bg-slate-100">
-                                    <th className="text-left py-2 pl-2">Deskripsi</th>
-                                    <th className="text-center py-2 w-[80px]">Qty</th>
-                                    {!isCreated && isAdmin && <th className="text-right py-2 w-[120px] text-muted-foreground print:hidden">Hrg Beli</th>}
-                                    <th className="text-right py-2 w-[150px]">
-                                        <span className="print:hidden">Hrg Jual</span>
-                                        <span className="hidden print:inline">Hrg Item</span>
-                                    </th>
-                                    <th className="text-right py-2 w-[150px] pr-2">Subtotal</th>
-                                    {!isCreated && isAdmin && <th className="w-[40px] print:hidden"></th>}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {lineItems.map((item, idx) => (
-                                    <tr key={idx} className="bg-white border-b border-dashed last:border-0 hover:bg-slate-50">
-                                        <td className="py-3 px-2">
-                                            {isCreated || !isAdmin || item.type === 'PART' ? (
-                                                <span>{item.desc}</span>
-                                            ) : (
-                                                <input
-                                                    className="w-full bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
-                                                    value={item.desc}
-                                                    onChange={(e) => updateLineItem(idx, 'desc', e.target.value)}
-                                                />
-                                            )}
-                                            {item.type === 'PART' && <Badge variant="outline" className="ml-2 text-xs h-5 print:hidden">Part</Badge>}
-                                        </td>
-                                        <td className="text-center py-3">
-                                            {isCreated || !isAdmin ? (
-                                                <span>{item.qty}</span>
-                                            ) : (
-                                                <input
-                                                    type="number"
-                                                    className="w-full text-center bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
-                                                    value={item.qty}
-                                                    onChange={(e) => updateLineItem(idx, 'qty', e.target.value)}
-                                                />
-                                            )}
-                                        </td>
+                    {/* --- MAIN CONTENT --- */}
+                    <tbody>
+                        <tr>
+                            <td>
+                                <CardContent className="pt-6 px-6 print:px-0">
+
+                                    {/* Visit Diagnosis Details (Helper for Input) */}
+                                    {(!isCreated && isAdmin) && (
+                                        <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg space-y-3 print:hidden">
+                                            <h3 className="font-semibold text-blue-800 flex items-center gap-2">
+                                                <FileText className="h-4 w-4" /> Detail Pengerjaan (Referensi)
+                                            </h3>
+                                            <div className="space-y-4 text-sm">
+                                                {visit.keluhan && (
+                                                    <div>
+                                                        <span className="font-semibold text-gray-700 block mb-1">Keluhan Awal:</span>
+                                                        <div className="bg-white p-2 rounded border text-gray-800">
+                                                            {visit.keluhan}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <span className="font-semibold text-gray-700 block mb-1">Tindakan / Perbaikan:</span>
+                                                    <div className="bg-white p-2 rounded border text-gray-800 whitespace-pre-wrap">
+                                                        {visit.perbaikan || "-"}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <span className="font-semibold text-gray-700 block mb-1">Sparepart Digunakan:</span>
+                                                    <div className="bg-white p-2 rounded border text-gray-800 whitespace-pre-wrap">
+                                                        {visit.items && visit.items.length > 0 ? (
+                                                            <ul className="list-disc list-inside">
+                                                                {visit.items.map((item: any, idx: number) => (
+                                                                    <li key={idx}>
+                                                                        {item.quantity}x {item.sparePart?.name || item.name || "Item"}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        ) : (
+                                                            <div className="text-gray-500 italic">- Tidak ada sparepart -</div>
+                                                        )}
+
+                                                        {/* Show warning if legacy text exists but structured items are empty (or even if they exist, to be safe, but mostly if empty as per concept) */}
+                                                        {visit.sparepart && (!visit.items || visit.items.length === 0) && (
+                                                            <div className="mt-2 text-sm text-red-600">
+                                                                * Data lama: {visit.sparepart} (Harap input ulang di atas jika perlu restock)
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Items Table */}
+                                    <div className="min-h-[200px]">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="border-b bg-slate-100">
+                                                    <th className="text-left py-2 pl-2">Deskripsi</th>
+                                                    <th className="text-center py-2 w-[80px]">Qty</th>
+                                                    {!isCreated && isAdmin && <th className="text-right py-2 w-[120px] text-muted-foreground print:hidden">Hrg Beli</th>}
+                                                    <th className="text-right py-2 w-[150px]">
+                                                        <span className="print:hidden">Hrg Jual</span>
+                                                        <span className="hidden print:inline">Hrg Item</span>
+                                                    </th>
+                                                    <th className="text-right py-2 w-[150px] pr-2">Subtotal</th>
+                                                    {!isCreated && isAdmin && <th className="w-[40px] print:hidden"></th>}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {lineItems.map((item, idx) => (
+                                                    <tr key={idx} className="bg-white border-b border-dashed last:border-solid last:border-slate-300 hover:bg-slate-50">
+                                                        <td className="py-3 px-2">
+                                                            {isCreated || !isAdmin || item.type === 'PART' ? (
+                                                                <span>{item.desc}</span>
+                                                            ) : (
+                                                                <input
+                                                                    className="w-full bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
+                                                                    value={item.desc}
+                                                                    onChange={(e) => updateLineItem(idx, 'desc', e.target.value)}
+                                                                />
+                                                            )}
+                                                            {item.type === 'PART' && <Badge variant="outline" className="ml-2 text-xs h-5 print:hidden">Part</Badge>}
+                                                        </td>
+                                                        <td className="text-center py-3">
+                                                            {isCreated || !isAdmin ? (
+                                                                <span>{item.qty}</span>
+                                                            ) : (
+                                                                <input
+                                                                    type="number"
+                                                                    className="w-full text-center bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
+                                                                    value={item.qty}
+                                                                    onChange={(e) => updateLineItem(idx, 'qty', e.target.value)}
+                                                                />
+                                                            )}
+                                                        </td>
+                                                        {!isCreated && isAdmin && (
+                                                            <td className="text-right py-3 text-muted-foreground">
+                                                                {item.cost ? item.cost.toLocaleString("id-ID") : "-"}
+                                                            </td>
+                                                        )}
+                                                        <td className="text-right py-3 flex items-center justify-end gap-2">
+                                                            {isCreated || !isAdmin ? (
+                                                                <span>{item.price.toLocaleString("id-ID")}</span>
+                                                            ) : (
+                                                                <div className="flex items-center gap-1 w-full">
+                                                                    <input
+                                                                        type="number"
+                                                                        className="w-full text-right bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
+                                                                        value={item.price}
+                                                                        onChange={(e) => updateLineItem(idx, 'price', e.target.value)}
+                                                                    />
+                                                                    {item.availablePrices && item.availablePrices.length > 0 && (
+                                                                        <div className="relative group">
+                                                                            <Button size="icon" variant="ghost" className="h-6 w-6 rounded-full p-0">
+                                                                                <span className="text-xs text-blue-600 font-bold">$</span>
+                                                                            </Button>
+                                                                            {/* Simple Hover Menu for Prices */}
+                                                                            <div className="absolute right-0 top-6 z-50 hidden group-hover:block w-48 bg-white border rounded-md shadow-lg p-1">
+                                                                                <div className="text-xs font-semibold text-muted-foreground px-2 py-1 bg-slate-50">Pilih Harga Jual:</div>
+                                                                                {item.availablePrices.map((p: any, pIdx: number) => (
+                                                                                    <div
+                                                                                        key={pIdx}
+                                                                                        className="text-xs px-2 py-1.5 hover:bg-slate-100 cursor-pointer flex justify-between"
+                                                                                        onClick={() => updateLineItem(idx, 'price', p.price)}
+                                                                                    >
+                                                                                        <span>{p.brand}</span>
+                                                                                        <span className="font-mono">{Number(p.price).toLocaleString('id-ID')}</span>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className="text-right py-3 font-medium">
+                                                            {item.amount.toLocaleString("id-ID")}
+                                                        </td>
+                                                        {!isCreated && isAdmin && (
+                                                            <td className="text-right">
+                                                                <button className="text-red-500 hover:text-red-700" onClick={() => setLineItems(l => l.filter((_, i) => i !== idx))}>
+                                                                    x
+                                                                </button>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+
                                         {!isCreated && isAdmin && (
-                                            <td className="text-right py-3 text-muted-foreground">
-                                                {item.cost ? item.cost.toLocaleString("id-ID") : "-"}
-                                            </td>
-                                        )}
-                                        <td className="text-right py-3 flex items-center justify-end gap-2">
-                                            {isCreated || !isAdmin ? (
-                                                <span>{item.price.toLocaleString("id-ID")}</span>
-                                            ) : (
-                                                <div className="flex items-center gap-1 w-full">
-                                                    <input
-                                                        type="number"
-                                                        className="w-full text-right bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
-                                                        value={item.price}
-                                                        onChange={(e) => updateLineItem(idx, 'price', e.target.value)}
-                                                    />
-                                                    {item.availablePrices && item.availablePrices.length > 0 && (
-                                                        <div className="relative group">
-                                                            <Button size="icon" variant="ghost" className="h-6 w-6 rounded-full p-0">
-                                                                <span className="text-xs text-blue-600 font-bold">$</span>
-                                                            </Button>
-                                                            {/* Simple Hover Menu for Prices */}
-                                                            <div className="absolute right-0 top-6 z-50 hidden group-hover:block w-48 bg-white border rounded-md shadow-lg p-1">
-                                                                <div className="text-xs font-semibold text-muted-foreground px-2 py-1 bg-slate-50">Pilih Harga Jual:</div>
-                                                                {item.availablePrices.map((p: any, pIdx: number) => (
-                                                                    <div
-                                                                        key={pIdx}
-                                                                        className="text-xs px-2 py-1.5 hover:bg-slate-100 cursor-pointer flex justify-between"
-                                                                        onClick={() => updateLineItem(idx, 'price', p.price)}
+                                            <div className="mt-4 flex gap-4 items-start border-t pt-4">
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium mb-2">Tambah Sparepart (Master Data)</p>
+                                                    <div className="relative">
+                                                        <input
+                                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            placeholder="Cari sparepart (kode/nama)..."
+                                                            onChange={(e) => handleSearch(e.target.value)}
+                                                        />
+                                                        {searchResults.length > 0 && (
+                                                            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1 max-h-60 overflow-y-auto">
+                                                                {searchResults.map(res => (
+                                                                    <div key={res.id}
+                                                                        className="p-2 hover:bg-slate-100 cursor-pointer text-sm flex justify-between"
+                                                                        onClick={() => addPartItem(res)}
                                                                     >
-                                                                        <span>{p.brand}</span>
-                                                                        <span className="font-mono">{Number(p.price).toLocaleString('id-ID')}</span>
+                                                                        <span>{res.code} - {res.name}</span>
+                                                                        <span className="text-xs text-muted-foreground">Stok: {res.stock}</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="text-right py-3 font-medium">
-                                            {item.amount.toLocaleString("id-ID")}
-                                        </td>
-                                        {!isCreated && isAdmin && (
-                                            <td className="text-right">
-                                                <button className="text-red-500 hover:text-red-700" onClick={() => setLineItems(l => l.filter((_, i) => i !== idx))}>
-                                                    x
-                                                </button>
-                                            </td>
-                                        )}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-
-                        {!isCreated && isAdmin && (
-                            <div className="mt-4 flex gap-4 items-start border-t pt-4">
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium mb-2">Tambah Sparepart (Master Data)</p>
-                                    <div className="relative">
-                                        <input
-                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                            placeholder="Cari sparepart (kode/nama)..."
-                                            onChange={(e) => handleSearch(e.target.value)}
-                                        />
-                                        {searchResults.length > 0 && (
-                                            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1 max-h-60 overflow-y-auto">
-                                                {searchResults.map(res => (
-                                                    <div key={res.id}
-                                                        className="p-2 hover:bg-slate-100 cursor-pointer text-sm flex justify-between"
-                                                        onClick={() => addPartItem(res)}
-                                                    >
-                                                        <span>{res.code} - {res.name}</span>
-                                                        <span className="text-xs text-muted-foreground">Stok: {res.stock}</span>
+                                                        )}
                                                     </div>
-                                                ))}
+                                                </div>
+                                                <div className="w-1/3 pt-7">
+                                                    <Button variant="secondary" className="w-full" onClick={() => setLineItems([...lineItems, { type: 'SERVICE', desc: "Biaya Jasa", qty: 1, cost: 0, price: 0, amount: 0 }])}>
+                                                        + Biaya Lain (Jasa)
+                                                    </Button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
-                                </div>
-                                <div className="w-1/3 pt-7">
-                                    <Button variant="secondary" className="w-full" onClick={() => setLineItems([...lineItems, { type: 'SERVICE', desc: "Biaya Jasa", qty: 1, cost: 0, price: 0, amount: 0 }])}>
-                                        + Biaya Lain (Jasa)
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
 
-                    <Separator className="my-6" />
 
-                    <div className="flex justify-end">
-                        <div className="w-1/2 space-y-2">
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">Subtotal</span>
-                                <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(subTotal)}</span>
-                            </div>
+                                </CardContent>
+                            </td>
+                        </tr>
 
-                            <div className="flex justify-between items-center text-sm">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-muted-foreground">PPN</span>
-                                    {(!isCreated && isAdmin) ? (
-                                        <div className="flex items-center gap-1">
-                                            <input
-                                                type="number"
-                                                className="w-12 text-center border rounded px-1 py-0.5 text-xs"
-                                                value={ppn}
-                                                onChange={(e) => setPpn(Math.max(0, Number(e.target.value)))}
-                                            />
-                                            <span>%</span>
+                        {/* Footer Section - Prints once at the very end of all items */}
+                        <tr className="print:break-inside-avoid" style={{ pageBreakInside: 'avoid' }}>
+                            <td className="print:px-0">
+                                <Separator className="my-6 print:my-2" />
+
+                                <div className="flex justify-between items-end mt-8 print:mt-4 w-full">
+                                    {/* Invoice Footer (Printed By) placed at the bottom left */}
+                                    <div className="pt-12 text-sm font-medium">
+                                        <div className="grid grid-cols-[80px_auto_1fr] items-center text-left">
+                                            <span className="text-gray-600">Printed by</span>
+                                            <span className="px-2">:</span>
+                                            <span>{session?.user?.name || "Admin"}</span>
                                         </div>
-                                    ) : (
-                                        <span>({ppn}%)</span>
-                                    )}
+                                    </div>
+
+                                    {/* Totals Section */}
+                                    <div className="w-1/2 space-y-2">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-muted-foreground">Subtotal</span>
+                                            <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(subTotal)}</span>
+                                        </div>
+
+                                        <div className="flex justify-between items-center text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-muted-foreground">PPN</span>
+                                                {(!isCreated && isAdmin) ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <input
+                                                            type="number"
+                                                            className="w-12 text-center border rounded px-1 py-0.5 text-xs"
+                                                            value={ppn}
+                                                            onChange={(e) => setPpn(Math.max(0, Number(e.target.value)))}
+                                                        />
+                                                        <span>%</span>
+                                                    </div>
+                                                ) : (
+                                                    <span>({ppn}%)</span>
+                                                )}
+                                            </div>
+                                            <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(taxAmount)}</span>
+                                        </div>
+
+                                        <div className="border-t-1 border-slate-200 my-1"></div>
+
+                                        <div className="flex justify-between items-center text-lg font-bold">
+                                            <span>Grand Total</span>
+                                            <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount)}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(taxAmount)}</span>
-                            </div>
-
-                            <div className="border-t-1 border-slate-200 my-1"></div>
-
-                            <div className="flex justify-between items-center text-lg font-bold">
-                                <span>Grand Total</span>
-                                <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 {/* Footer Actions (Admin Only & Not Print) */}
                 {!isVoid && isAdmin && (
@@ -627,26 +702,27 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
 
             {/* Print Styles */}
             <style jsx global>{`
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .print\\:hidden {
-                display: none !important;
-            }
-            .card, .card *, .card-content, .card-content * {
-                visibility: visible;
-            }
-            .card {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: none;
-                box-shadow: none;
-            }
-        }
-      `}</style>
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    .print\\:hidden {
+                        display: none !important;
+                    }
+                    .card, .card *, .card-content, .card-content * {
+                        visibility: visible;
+                    }
+                    .card {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        border: none;
+                        box-shadow: none;
+                    }
+                }
+            `}</style>
+
             {/* Confirmation Dialog */}
             <ConfirmationDialog
                 open={confirmOpen}
@@ -658,6 +734,6 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                 onConfirm={handleUpdateStatus}
                 loading={processing}
             />
-        </div >
+        </div>
     );
 }

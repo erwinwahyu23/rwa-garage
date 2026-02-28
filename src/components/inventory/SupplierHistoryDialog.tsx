@@ -76,9 +76,9 @@ export default function SupplierHistoryDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Riwayat Pembelian: {supplier?.name}</DialogTitle>
+            <DialogContent className="w-[95vw] sm:max-w-3xl p-4 sm:p-6 max-h-[85vh] overflow-y-auto min-w-0">
+                <DialogHeader className="pr-8">
+                    <DialogTitle className="leading-tight">Riwayat Pembelian: {supplier?.name}</DialogTitle>
                 </DialogHeader>
 
                 {loading ? (

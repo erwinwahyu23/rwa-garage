@@ -36,9 +36,9 @@ export default function SupplierPurchasesDialog({ supplier }: { supplier: { id: 
       <DialogTrigger asChild>
         <button className="text-left underline text-primary">{supplier.name}</button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Pembelian: {supplier.name}</DialogTitle>
+      <DialogContent className="w-[95vw] sm:max-w-4xl p-4 sm:p-6 max-h-[90vh] flex flex-col min-w-0">
+        <DialogHeader className="pr-8">
+          <DialogTitle className="leading-tight">Pembelian: {supplier.name}</DialogTitle>
           <DialogDescription>Daftar pembelian untuk supplier ini.</DialogDescription>
         </DialogHeader>
 

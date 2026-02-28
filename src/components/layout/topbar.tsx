@@ -58,7 +58,7 @@ export default function Topbar({
 
   return (
     <header
-      className={`h-16 shrink-0 border-b border-white/90 bg-white/30 backdrop-blur-xl flex items-center justify-between px-4 sm:px-8 sticky top-0 z-50 shadow-sm transition-transform duration-500 ease-in-out ${isVisible ? "translate-y-0" : "-translate-y-full md:translate-y-0"
+      className={`h-16 print:hidden shrink-0 border-b border-white/90 bg-white/30 backdrop-blur-xl flex items-center justify-between px-4 sm:px-8 sticky top-0 z-50 shadow-sm transition-transform duration-500 ease-in-out ${isVisible ? "translate-y-0" : "-translate-y-full md:translate-y-0"
         }`}
     >
 

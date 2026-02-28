@@ -263,7 +263,8 @@ export default function InventoryPageClient({ initialItems, completeOnly }: { in
       </div>
 
       {/* DATA TABLE */}
-      <div className="rounded-md border overflow-x-auto">
+      {/* DATA TABLE - Desktop */}
+      <div className="hidden md:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader className="bg-slate-100">
             <TableRow>
@@ -281,7 +282,7 @@ export default function InventoryPageClient({ initialItems, completeOnly }: { in
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                   Memuat data inventory...
                 </TableCell>
               </TableRow>
@@ -368,6 +369,97 @@ export default function InventoryPageClient({ initialItems, completeOnly }: { in
           </TableBody>
         </Table >
       </div >
+
+      {/* MOBILE CARD VIEW */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Memuat data inventory...
+          </div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Tidak ada data ditemukan.
+          </div>
+        ) : (
+          items.map((sp: any) => (
+            <div key={sp.id} className="bg-white rounded-lg border shadow-sm p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-bold text-lg">{sp.name}</div>
+                  <SparePartPurchasesDialog
+                    sparePart={{ id: sp.id, code: sp.code, name: sp.name }}
+                    trigger={
+                      <div className="text-sm font-mono text-blue-600 hover:underline cursor-pointer flex items-center gap-1">
+                        {sp.code}
+                      </div>
+                    }
+                  />
+                </div>
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => { setSelected(sp); setEditOpen(true); }} disabled={!isAdmin}>
+                      <Edit className="mr-2 h-4 w-4" /> Edit Barang
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      setSelected(sp);
+                      setHistoryOpen(true);
+                    }}>
+                      <History className="mr-2 h-4 w-4" /> Riwayat
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setSelected(sp); setAdjustOpen(true); }} disabled={!isAdmin}>
+                      <TrendingUp className="mr-2 h-4 w-4" /> Koreksi Stok
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 border border-blue-100">
+                  {sp.category || "Uncategorized"}
+                </span>
+                {sp.stock <= sp.minStock && (
+                  <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 border border-red-100">
+                    Stok Menipis
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm mt-2 border-t pt-2">
+                <div>
+                  <span className="text-muted-foreground block text-xs">Fisik / Min</span>
+                  <span className={`font-semibold ${sp.stock <= sp.minStock ? "text-red-600" : ""}`}>
+                    {sp.stock} <span className="text-muted-foreground font-normal">/ {sp.minStock}</span>
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs">Logis (Avail)</span>
+                  <span className={`font-semibold ${(sp.logicalStock ?? sp.stock) < 0 ? "text-red-600" : "text-green-700"}`}>
+                    {sp.logicalStock ?? sp.stock}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm mt-1">
+                <div>
+                  <span className="text-muted-foreground block text-xs">Harga Beli</span>
+                  <span className="font-medium">
+                    {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(sp.costPrice)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs">Harga Jual</span>
+                  <SellPriceCell sellPrices={sp.sellPrices} />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
       {/* Pagination Controls */}
       <PaginationControls

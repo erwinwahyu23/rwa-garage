@@ -190,20 +190,18 @@ export default function HistoryPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Semua Status</SelectItem>
-                <SelectItem value="ANTRI">Antri</SelectItem>
-                <SelectItem value="PROSES">Proses</SelectItem>
                 <SelectItem value="SELESAI">Selesai</SelectItem>
                 <SelectItem value="BATAL">Batal</SelectItem>
               </SelectContent>
             </Select>
 
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-[1fr_auto_1fr] sm:flex items-center gap-2 w-full sm:w-auto">
               <DatePicker
                 date={dateFrom ? new Date(dateFrom) : undefined}
                 onSelect={(d) => setDateFrom(format(d, "yyyy-MM-dd"))}
                 className="w-full sm:w-auto"
               />
-              <span className="text-muted-foreground">s/d</span>
+              <span className="self-center text-muted-foreground whitespace-nowrap">s/d</span>
               <DatePicker
                 date={dateTo ? new Date(dateTo) : undefined}
                 onSelect={(d) => setDateTo(format(d, "yyyy-MM-dd"))}
@@ -252,8 +250,13 @@ export default function HistoryPage() {
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        {v.vehicle.brand} {v.vehicle.model}
+                      <CardTitle className="text-base flex flex-wrap items-center gap-2">
+                        <span>{v.vehicle.brand} {v.vehicle.model}</span>
+                        {v.vehicle.licensePlate && (
+                          <span className="text-sm">
+                            {v.vehicle.licensePlate}
+                          </span>
+                        )}
                       </CardTitle>
                       <CardDescription className="font-mono text-xs mt-1">
                         {v.vehicle.engineNumber}
@@ -300,6 +303,7 @@ export default function HistoryPage() {
                   <TableHead>Tanggal</TableHead>
                   <TableHead>No Visit</TableHead>
                   <TableHead>Kendaraan</TableHead>
+                  <TableHead>No. Polisi</TableHead>
                   <TableHead>Pemilik</TableHead>
                   <TableHead>Mekanik</TableHead>
                   <TableHead>Status</TableHead>
@@ -327,6 +331,15 @@ export default function HistoryPage() {
                       <div className="text-xs text-muted-foreground">
                         {v.vehicle.brand} {v.vehicle.model}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {v.vehicle.licensePlate ? (
+                        <span className="text-sm">
+                          {v.vehicle.licensePlate}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 italic text-xs">Belum ada</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {v.vehicle.ownerName}

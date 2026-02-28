@@ -67,24 +67,27 @@ export default function InventoryHistoryDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[50vw] max-h-[95vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Riwayat Stok: {item?.name} ({item?.code})</DialogTitle>
+            <DialogContent className="w-[95vw] sm:max-w-[70vw] lg:max-w-[50vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 grid grid-rows-[auto_1fr] min-w-0">
+                <DialogHeader className="pr-8">
+                    <DialogTitle className="text-base sm:text-lg leading-tight break-words text-left">
+                        Riwayat Stok: <br className="sm:hidden" />
+                        <span className="text-sky-700">{item?.name}</span> <span className="text-muted-foreground whitespace-nowrap">({item?.code})</span>
+                    </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4">
-                    <div className="flex justify-between text-sm bg-slate-50 p-3 rounded">
-                        <div>
+                <div className="space-y-4 min-w-0 w-full overflow-hidden flex flex-col">
+                    <div className="flex flex-col sm:flex-row justify-between text-sm bg-slate-50 p-3 rounded gap-2 sm:gap-0">
+                        <div className="flex items-center">
                             <span className="text-muted-foreground mr-2">Stok Saat Ini:</span>
-                            <span className="font-bold text-lg">{item?.stock}</span>
+                            <span className="font-bold text-lg text-slate-800">{item?.stock}</span>
                         </div>
                         <div>
                             {/* Could add date range filter here later */}
                         </div>
                     </div>
 
-                    <div className="rounded-md border">
-                        <Table>
+                    <div className="rounded-md border overflow-x-auto w-full flex-1">
+                        <Table className="min-w-[500px]">
                             <TableHeader className="bg-slate-100">
                                 <TableRow>
                                     <TableHead>Tanggal</TableHead>

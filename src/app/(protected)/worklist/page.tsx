@@ -295,8 +295,13 @@ export default function WorklistPage() {
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        {v.vehicle.brand} {v.vehicle.model}
+                      <CardTitle className="text-base flex flex-wrap items-center gap-2">
+                        <span>{v.vehicle.brand} {v.vehicle.model}</span>
+                        {v.vehicle.licensePlate && (
+                          <span className="font-mono text-[10px] uppercase bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-900 border border-yellow-200">
+                            {v.vehicle.licensePlate}
+                          </span>
+                        )}
                       </CardTitle>
                       <CardDescription className="font-mono text-xs mt-1">
                         {v.vehicle.engineNumber}
@@ -397,6 +402,7 @@ export default function WorklistPage() {
                   <TableHead className="w-[200px]">Visit ID</TableHead>
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Kendaraan</TableHead>
+                  <TableHead>No. Polisi</TableHead>
                   <TableHead>Pemilik</TableHead>
                   <TableHead>Mekanik</TableHead>
                   <TableHead>Status</TableHead>
@@ -430,6 +436,15 @@ export default function WorklistPage() {
                     <TableCell>
                       <div className="font-medium">{v.vehicle.brand} {v.vehicle.model}</div>
                       <div className="text-xs text-muted-foreground">{v.vehicle.engineNumber}</div>
+                    </TableCell>
+                    <TableCell>
+                      {v.vehicle.licensePlate ? (
+                        <span className="text-sm">
+                          {v.vehicle.licensePlate}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 italic text-xs">Belum ada</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm">
                       <div className="font-medium">{v.vehicle.ownerName || <span className="text-slate-400 italic">Tanpa Nama</span>}</div>

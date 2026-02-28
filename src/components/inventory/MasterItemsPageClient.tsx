@@ -130,24 +130,24 @@ export default function MasterItemsPageClient() {
   return (
     <div>
       <div className="mb-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Button
               onClick={() => router.back()}
               variant="ghost"
               size="icon"
-              className="rounded-full"
+              className="rounded-full flex-shrink-0"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">Master Items</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Master Items</h1>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => setCreateOpen(true)} disabled={!isAdmin}>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button className="flex-1 sm:flex-none bg-sky-700 hover:bg-sky-600 shadow-sm" onClick={() => setCreateOpen(true)} disabled={!isAdmin}>
               <Plus className="h-4 w-4 mr-2" />
               Tambah Item
             </Button>
-            <Button variant="secondary" onClick={() => setUnitOpen(true)} disabled={!isAdmin}>
+            <Button className="flex-1 sm:flex-none shadow-sm" variant="secondary" onClick={() => setUnitOpen(true)} disabled={!isAdmin}>
               Satuan
             </Button>
           </div>
@@ -179,76 +179,142 @@ export default function MasterItemsPageClient() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+      <div className="md:overflow-hidden md:rounded-lg md:border md:bg-white md:shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-100 border-b">
-              <tr>
-                <th className="p-3">Kode</th>
-                <th className="p-3">Nama</th>
-                <th className="p-3">Kategori</th>
-                <th className="p-3">Satuan</th>
-                <th className="p-3">Min Stok</th>
-                <th className="p-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {loading ? (
+          <div className="hidden md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-100 border-b">
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                    <div className="flex justify-center items-center gap-2">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Loading data...
-                    </div>
-                  </td>
+                  <th className="p-3">Kode</th>
+                  <th className="p-3">Nama</th>
+                  <th className="p-3">Kategori</th>
+                  <th className="p-3">Satuan</th>
+                  <th className="p-3">Min Stok</th>
+                  <th className="p-3"></th>
                 </tr>
-              ) : items.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                    Tidak ada item yang ditemukan.
-                  </td>
-                </tr>
-              ) : (
-                items.map((sp) => (
-                  <tr key={sp.id} className="bg-white hover:bg-slate-50 transition-colors">
-                    <td className="p-3 font-medium">{sp.code}</td>
-                    <td className="p-3">{sp.name}</td>
-                    <td className="p-3">
-                      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                        {sp.category}
-                      </span>
-                    </td>
-                    <td className="p-3">{sp.unit || "Pcs"}</td>
-                    <td className="p-3">{sp.minStock}</td>
-                    <td className="p-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="h-8 px-2"
-                          onClick={() => { setSelected(sp); setEditOpen(true); }}
-                          disabled={!isAdmin}
-                        >
-                          <Edit className="h-3.5 w-3.5 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="h-8 px-2"
-                          onClick={() => handleDelete(sp.id)}
-                          disabled={!isAdmin}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 mr-1" />
-                          Hapus
-                        </Button>
+              </thead>
+              <tbody className="divide-y">
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                      <div className="flex justify-center items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Loading data...
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : items.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                      Tidak ada item yang ditemukan.
+                    </td>
+                  </tr>
+                ) : (
+                  items.map((sp) => (
+                    <tr key={sp.id} className="bg-white hover:bg-slate-50 transition-colors">
+                      <td className="p-3 font-medium">{sp.code}</td>
+                      <td className="p-3">{sp.name}</td>
+                      <td className="p-3">
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                          {sp.category}
+                        </span>
+                      </td>
+                      <td className="p-3">{sp.unit || "Pcs"}</td>
+                      <td className="p-3">{sp.minStock}</td>
+                      <td className="p-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="h-8 px-2"
+                            onClick={() => { setSelected(sp); setEditOpen(true); }}
+                            disabled={!isAdmin}
+                          >
+                            <Edit className="h-3.5 w-3.5 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="h-8 px-2"
+                            onClick={() => handleDelete(sp.id)}
+                            disabled={!isAdmin}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1" />
+                            Hapus
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4 pt-2 pb-4">
+            {loading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <div className="flex justify-center items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Loading data...
+                </div>
+              </div>
+            ) : items.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Tidak ada item yang ditemukan.
+              </div>
+            ) : (
+              items.map((sp) => (
+                <div key={sp.id} className="bg-white rounded-lg border shadow-sm p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-bold text-lg">{sp.name}</div>
+                      <div className="text-sm text-muted-foreground font-mono">{sp.code}</div>
+                    </div>
+                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                      {sp.category}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Satuan:</span>
+                      <span className="font-medium ml-1">{sp.unit || "Pcs"}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Min Stok:</span>
+                      <span className="font-medium ml-1">{sp.minStock}</span>
+                    </div>
+                  </div>
+
+                  {isAdmin && (
+                    <div className="flex gap-2 pt-2 border-t mt-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => { setSelected(sp); setEditOpen(true); }}
+                      >
+                        <Edit className="h-3.5 w-3.5 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleDelete(sp.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                        Hapus
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
       </div>

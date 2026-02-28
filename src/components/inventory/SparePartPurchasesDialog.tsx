@@ -38,9 +38,9 @@ export default function SparePartPurchasesDialog({ sparePart, trigger }: { spare
           <button className="underline text-primary">{sparePart.code}</button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Pembelian: {sparePart.code} {sparePart.name ? `- ${sparePart.name}` : ''}</DialogTitle>
+      <DialogContent className="w-[95vw] sm:max-w-4xl p-4 sm:p-6 max-h-[90vh] flex flex-col min-w-0">
+        <DialogHeader className="pr-8">
+          <DialogTitle className="leading-tight">Pembelian: {sparePart.code} {sparePart.name ? `- ${sparePart.name}` : ''}</DialogTitle>
           <DialogDescription>Daftar pembelian untuk spare part ini.</DialogDescription>
         </DialogHeader>
 

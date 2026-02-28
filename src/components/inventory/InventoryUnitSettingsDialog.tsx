@@ -141,7 +141,7 @@ export default function InventoryUnitSettingsDialog({ open, onOpenChange }: Prop
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md max-h-[80vh] flex flex-col">
+            <DialogContent className="w-[95vw] sm:max-w-md p-4 sm:p-6 max-h-[80vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Kelola Satuan (Units)</DialogTitle>
                 </DialogHeader>

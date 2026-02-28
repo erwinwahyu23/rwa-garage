@@ -148,7 +148,7 @@ export default function VehicleRecordPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold tracking-tight">Detail Kendaraan</h1>
             <Badge variant="outline" className="font-mono text-xs">{vehicle.engineNumber}</Badge>
             {vehicle.licensePlate && (
@@ -243,54 +243,56 @@ export default function VehicleRecordPage() {
               <CardDescription>Daftar servis yang pernah dilakukan.</CardDescription>
             </CardHeader>
             <CardContent className="p-0 sm:p-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[150px]">Tanggal</TableHead>
-                    <TableHead>No. Visit</TableHead>
-                    <TableHead>Keluhan</TableHead>
-                    <TableHead>Mekanik</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {visits.length === 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                        Belum ada riwayat kunjungan.
-                      </TableCell>
+                      <TableHead className="w-[150px]">Tanggal</TableHead>
+                      <TableHead>No. Visit</TableHead>
+                      <TableHead>Keluhan</TableHead>
+                      <TableHead>Mekanik</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
-                  ) : (
-                    visits.map((v) => (
-                      <TableRow key={v.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">
-                          {format(new Date(v.createdAt), "dd/MM/yyyy")}
-                        </TableCell>
-                        <TableCell>{v.visitNumber}</TableCell>
-                        <TableCell className="max-w-[200px] truncate text-muted-foreground text-xs">
-                          {v.keluhan || "-"}
-                        </TableCell>
-                        <TableCell>{v.mechanic?.name || "-"}</TableCell>
-                        <TableCell>{getStatusBadge(v.status)}</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => {
-                              setSelectedVisit(v);
-                              setOpen(true);
-                            }}
-                          >
-                            <FileText className="h-3 w-3 sm:mr-1" />
-                            <span className="hidden sm:inline">Detail</span>
-                          </Button>
+                  </TableHeader>
+                  <TableBody>
+                    {visits.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                          Belum ada riwayat kunjungan.
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      visits.map((v) => (
+                        <TableRow key={v.id}>
+                          <TableCell className="font-medium text-xs sm:text-sm">
+                            {format(new Date(v.createdAt), "dd/MM/yyyy")}
+                          </TableCell>
+                          <TableCell>{v.visitNumber}</TableCell>
+                          <TableCell className="max-w-[200px] truncate text-muted-foreground text-xs">
+                            {v.keluhan || "-"}
+                          </TableCell>
+                          <TableCell>{v.mechanic?.name || "-"}</TableCell>
+                          <TableCell>{getStatusBadge(v.status)}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => {
+                                setSelectedVisit(v);
+                                setOpen(true);
+                              }}
+                            >
+                              <FileText className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Detail</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

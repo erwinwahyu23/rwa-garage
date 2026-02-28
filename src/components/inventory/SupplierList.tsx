@@ -109,7 +109,7 @@ export default function SupplierList() {
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <div className="hidden md:block rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-slate-100 border-b">
@@ -167,6 +167,58 @@ export default function SupplierList() {
                         )}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                {loading ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                        Memuat data...
+                    </div>
+                ) : suppliers && suppliers.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                        Tidak ada supplier yang ditemukan.
+                    </div>
+                ) : (
+                    suppliers.map((s) => (
+                        <div
+                            key={s.id}
+                            className="bg-white rounded-lg border shadow-sm p-4 space-y-3 active:bg-slate-50"
+                            onClick={() => setSelectedSupplier(s)}
+                        >
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <User className="h-4 w-4 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-base">{s.name}</div>
+                                        <div className="text-sm text-muted-foreground">{s.contact || "-"}</div>
+                                    </div>
+                                </div>
+                                <DropdownMenu modal={false}>
+                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <span className="sr-only">Open menu</span>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="min-w-[220px]">
+                                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                        <DropdownMenuItem onClick={(e) => handleEdit(s, e)}>
+                                            <Pencil className="mr-2 h-4 w-4" />
+                                            Edit Nama
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={(e) => handleHistory(s, e)}>
+                                            <FileText className="mr-2 h-4 w-4" />
+                                            Riwayat Pembelian
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             {/* Pagination Controls */}

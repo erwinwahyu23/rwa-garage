@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { Loader2, FileText, CheckCircle, Clock, MessageCircle, FilePlus, Eye } from "lucide-react";
+import { Loader2, FileText, CheckCircle, Clock, MessageCircle, FilePlus, Eye, User } from "lucide-react";
 import PaginationControls from "@/components/shared/PaginationControls";
 import { DatePicker } from "@/components/shared/DatePicker";
 
@@ -105,13 +105,13 @@ export default function BillingPageClient() {
                         <option value="NONE">Belum Ada Tagihan</option>
                     </select>
                 </div>
-                <div className="flex items-center gap-2 w-full lg:w-auto">
+                <div className="grid grid-cols-[1fr_auto_1fr] sm:flex items-center gap-2 w-full lg:w-auto">
                     <DatePicker
                         date={startDate ? new Date(startDate) : undefined}
                         onSelect={(d) => { setStartDate(format(d, "yyyy-MM-dd")); setPage(1); }}
                         className="w-full sm:w-auto"
                     />
-                    <span className="self-center text-muted-foreground">s/d</span>
+                    <span className="self-center text-muted-foreground whitespace-nowrap">s/d</span>
                     <DatePicker
                         date={endDate ? new Date(endDate) : undefined}
                         onSelect={(d) => { setEndDate(format(d, "yyyy-MM-dd")); setPage(1); }}
@@ -120,13 +120,15 @@ export default function BillingPageClient() {
                 </div>
             </div>
 
-            <div className="rounded-md border">
+            {/* Desktop Table */}
+            <div className="hidden md:block rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-slate-100">
                             <TableHead>Tgl Kunjungan</TableHead>
-                            <TableHead>No. Antrian</TableHead>
+                            <TableHead>Visit ID</TableHead>
                             <TableHead>Kendaraan</TableHead>
+                            <TableHead>No. Polisi</TableHead>
                             <TableHead>Mekanik</TableHead>
                             <TableHead>Status Servis</TableHead>
                             <TableHead>Status Invoice</TableHead>
@@ -157,11 +159,12 @@ export default function BillingPageClient() {
                                 return (
                                     <TableRow key={visit.id}>
                                         <TableCell>{format(new Date(visit.visitDate), "dd MMM yyyy", { locale: id })}</TableCell>
-                                        <TableCell className="font-mono font-medium">{visit.visitNumber}</TableCell>
+                                        <TableCell>{visit.visitNumber}</TableCell>
                                         <TableCell>
                                             <div className="font-medium">{visit.vehicle?.brand} {visit.vehicle?.model}</div>
                                             <div className="text-xs text-muted-foreground">{visit.vehicle?.engineNumber}</div>
                                         </TableCell>
+                                        <TableCell>{visit.vehicle?.licensePlate}</TableCell>
                                         <TableCell>{visit.mechanic?.name || "-"}</TableCell>
                                         <TableCell>
                                             {visit.status === "SELESAI" && <Badge className="text-white bg-green-600 hover:bg-green-700 text-[10px] px-2 py-0.5 h-5">SELESAI</Badge>}
@@ -241,7 +244,7 @@ Semoga kendaraan selalu dalam kondisi prima`;
                                                                 className="h-6 text-xs px-2 justify-end text-muted-foreground hover:text-blue-600"
                                                                 onClick={() => router.push(`/billing/${inv.id}`)}
                                                             >
-                                                                <Eye className="mr-2 h-3 w-3" /> Lihat Invoice
+                                                                <Eye className="mr-2 h-3 w-3" /> Lihat
                                                             </Button>
                                                         </div>
                                                     ))}
@@ -271,6 +274,88 @@ Semoga kendaraan selalu dalam kondisi prima`;
                         )}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                {loading ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                        Memuat data...
+                    </div>
+                ) : visits.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                        Tidak ada data yang ditemukan.
+                    </div>
+                ) : (
+                    visits.map((visit) => {
+                        const invoice = visit.invoice;
+
+                        return (
+                            <div key={visit.id} className="bg-white rounded-lg border shadow-sm p-4 space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <div className="font-bold text-base flex items-center gap-2">
+                                            {visit.vehicle?.brand} {visit.vehicle?.model}
+                                            <span className="text-xs font-normal text-muted-foreground">({visit.vehicle?.engineNumber})</span>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                            <span>No. {visit.visitNumber}</span>
+                                            <span>•</span>
+                                            <Clock className="h-3 w-3" />
+                                            <span>{format(new Date(visit.visitDate), "dd MMM yyyy", { locale: id })}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        {visit.status === "SELESAI" && <Badge className="text-white bg-green-600 text-[10px] px-2 py-0.5">SELESAI</Badge>}
+                                        {visit.status === "PROSES" && <Badge className="text-white bg-blue-600 text-[10px] px-2 py-0.5">PROSES</Badge>}
+                                        {visit.status === "ANTRI" && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5">ANTRI</Badge>}
+                                        {visit.status === "BATAL" && <Badge variant="destructive" className="text-[10px] px-2 py-0.5">BATAL</Badge>}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm">
+                                    <User className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span>Mekanik: {visit.mechanic?.name || "-"}</span>
+                                </div>
+
+                                <div className="pt-2 border-t space-y-2">
+                                    {visit.invoices && visit.invoices.length > 0 ? (
+                                        visit.invoices.map((inv: any) => (
+                                            <div key={inv.id} className="flex justify-between items-center bg-slate-50 p-2 rounded">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-mono font-medium">{inv.invoiceNumber}</span>
+                                                        {inv.status === "UNPAID" && <Badge variant="outline" className="border-red-500 text-red-500 text-[10px] h-4">Unpaid</Badge>}
+                                                        {inv.status === "PAID" && <Badge variant="outline" className="border-green-500 text-green-500 bg-green-50 text-[10px] h-4">Paid</Badge>}
+                                                        {inv.status === "VOID" && <Badge variant="outline" className="border-gray-500 text-gray-500 bg-gray-50 text-[10px] h-4">Void</Badge>}
+                                                    </div>
+                                                    <div className="font-bold text-sm">
+                                                        {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(inv.totalAmount)}
+                                                    </div>
+                                                </div>
+                                                <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={() => router.push(`/billing/${inv.id}`)}>
+                                                    Lihat
+                                                </Button>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-sm text-muted-foreground italic">Belum ada invoice</div>
+                                    )}
+                                </div>
+
+                                {isAdmin && (!invoice || invoice?.status === "VOID") && visit.status === "SELESAI" && (
+                                    <Button
+                                        className="w-full"
+                                        size="sm"
+                                        onClick={() => router.push(`/billing/create?visitId=${visit.id}`)}
+                                    >
+                                        <FilePlus className="mr-2 h-4 w-4" /> Buat Invoice
+                                    </Button>
+                                )}
+                            </div>
+                        );
+                    })
+                )}
             </div>
 
             {/* Pagination */}

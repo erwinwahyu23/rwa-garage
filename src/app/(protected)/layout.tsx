@@ -22,13 +22,13 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen print:h-auto">
       <div className="hidden md:flex">
         <Sidebar role={session.user.role} />
       </div>
-      <div id="main-scroll-container" className="flex flex-1 flex-col overflow-y-auto h-screen relative scroll-smooth">
+      <div id="main-scroll-container" className="flex flex-1 flex-col overflow-y-auto print:overflow-visible h-screen print:h-auto relative scroll-smooth">
         <Topbar user={session.user} />
-        <main className="flex-1 p-6 bg-slate-50">
+        <main className="flex-1 p-6 print:p-0 bg-slate-50 print:bg-white">
           {children}
         </main>
       </div>

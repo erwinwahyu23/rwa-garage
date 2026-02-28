@@ -64,14 +64,12 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden font-sans">
-      {/* Decorative Elements for Glassmorphism effect (Light Theme) */}
-      <div className="absolute top-[-20%] left-[-20%] w-[40%] h-[40%] bg-sky-300/40 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-20%] right-[-20%] w-[70%] h-[70%] bg-sky-400/40 rounded-full blur-[120px]" />
-
-      {/* Card (Glassmorphism Light) */}
-      <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-6">
-        <Card className="w-full bg-white backdrop-blur-xl border-slate-300 shadow-2xl">
+    <div className="min-h-screen bg-slate-200 w-full relative flex items-start sm:items-center justify-center pt-[10vh] sm:pt-0 pb-10 overflow-hidden font-sans">
+      {/* background biru di atas */}
+      <div className="absolute top-0 left-0 w-full h-[40vh] bg-slate-900 flex flex-col items-center justify-center text-white" />
+      {/* Card */}
+      <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-6 px-4 sm:px-0">
+        <Card className="w-full bg-white border-slate-200 shadow-xl sm:shadow-2xl rounded-2xl sm:rounded-xl">
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-0">
               <Image
@@ -79,7 +77,7 @@ export default function LoginForm() {
                 alt="RWA Garage Logo"
                 width={180}
                 height={180}
-                className="w-auto h-20 object-contain"
+                className="w-auto h-16 sm:h-20 object-contain"
                 priority
               />
             </div>
@@ -100,7 +98,9 @@ export default function LoginForm() {
                   value={username}
                   onChange={(e) => { setUsername(e.target.value); setError(""); }}
                   disabled={loading}
-                  className="focus-visible:ring-sky-700"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  className="h-11 sm:h-12 focus-visible:ring-sky-700"
                 />
               </div>
 
@@ -114,12 +114,12 @@ export default function LoginForm() {
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); setError(""); }}
                     disabled={loading}
-                    className="focus-visible:ring-sky-700"
+                    className="h-11 sm:h-12 pr-12 focus-visible:ring-sky-700"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 focus:outline-none"
+                    className="absolute right-0 top-0 h-11 sm:h-12 w-12 flex items-center justify-center text-slate-500 hover:text-slate-700 focus:outline-none"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -137,7 +137,7 @@ export default function LoginForm() {
 
               <Button
                 type="submit"
-                className="w-full bg-sky-700 hover:bg-sky-600 text-white text-base font-medium shadow-lg h-10 focus-visible:ring-sky-700"
+                className="w-full bg-sky-700 hover:bg-sky-600 text-white text-base font-medium shadow-lg h-11 sm:h-12 focus-visible:ring-sky-700 rounded-lg"
                 disabled={loading}
               >
                 {loading ? "Memproses..." : "Login"}
@@ -145,10 +145,6 @@ export default function LoginForm() {
             </form>
           </CardContent>
         </Card>
-
-        <div className="text-slate-500 text-sm font-medium">
-          Copyright @2026
-        </div>
       </div>
     </div>
   );

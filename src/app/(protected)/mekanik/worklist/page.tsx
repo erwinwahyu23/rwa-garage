@@ -234,8 +234,13 @@ export default function MekanikWorklistPage() {
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        {v.vehicle.brand} {v.vehicle.model}
+                      <CardTitle className="text-base flex flex-wrap items-center gap-2">
+                        <span>{v.vehicle.brand} {v.vehicle.model}</span>
+                        {v.vehicle.licensePlate && (
+                          <span className="text-sm">
+                            {v.vehicle.licensePlate}
+                          </span>
+                        )}
                       </CardTitle>
                       <CardDescription className="font-mono text-xs mt-1">
                         {v.vehicle.engineNumber}
@@ -248,6 +253,10 @@ export default function MekanikWorklistPage() {
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <User className="h-4 w-4" />
                     <span className="text-foreground font-medium">{v.vehicle.ownerName || "Tanpa Nama"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>{format(new Date(v.visitDate), "dd/MM/yyyy HH:mm")}</span>
                   </div>
 
                   {/* Action Buttons for Mobile */}
@@ -318,6 +327,7 @@ export default function MekanikWorklistPage() {
                   <TableHead className="w-[200px]">Visit ID</TableHead>
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Kendaraan</TableHead>
+                  <TableHead>No. Polisi</TableHead>
                   <TableHead>Pemilik</TableHead>
                   <TableHead>Mekanik</TableHead>
                   <TableHead>Status</TableHead>
@@ -348,6 +358,15 @@ export default function MekanikWorklistPage() {
                     <TableCell>
                       <div className="font-medium">{v.vehicle.brand} {v.vehicle.model}</div>
                       <div className="text-xs text-muted-foreground">{v.vehicle.engineNumber}</div>
+                    </TableCell>
+                    <TableCell>
+                      {v.vehicle.licensePlate ? (
+                        <span className="text-sm">
+                          {v.vehicle.licensePlate}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 italic text-xs">Belum ada</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm">
                       <div className="font-medium">{v.vehicle.ownerName || <span className="text-slate-400 italic">Tanpa Nama</span>}</div>

@@ -64,7 +64,7 @@ export default function StockAdjustmentDialog({ open, onOpenChange, item, onUpda
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="w-[95vw] sm:max-w-md p-4 sm:p-6">
                 <DialogHeader>
                     <DialogTitle>Koreksi Stok (Stock Opname)</DialogTitle>
                 </DialogHeader>
