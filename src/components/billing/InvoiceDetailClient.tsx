@@ -121,9 +121,8 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                 bestPrice = Number(match.price);
                 matched = true;
             } else {
-                // If no match, maybe take the first one or just cost? 
-                // Let's default to the first sell price if available, else cost
-                bestPrice = Number(part.sellPrices[0].price);
+                // If no match, take the highest price available
+                bestPrice = Math.max(...part.sellPrices.map((sp: any) => Number(sp.price)));
             }
         }
 
@@ -168,7 +167,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                         if (match) {
                             bestPrice = Number(match.price);
                         } else {
-                            bestPrice = Number(vi.sparePart.sellPrices[0].price);
+                            bestPrice = Math.max(...vi.sparePart.sellPrices.map((sp: any) => Number(sp.price)));
                         }
                     }
 
@@ -341,22 +340,23 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                     <thead className="print:table-header-group">
                         <tr>
                             <td>
-                                <div className="flex justify-between items-center mb-6 px-6 pt-6 print:px-0">
-                                    <div className="flex items-center gap-4">
-                                        <Image src="/logo.png" alt="RWA Garage Logo" width={60} height={60} className="object-contain" />
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 px-6 pt-6 print:px-0 gap-4">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                        <Image src="/logo.png" alt="RWA Garage Logo" width={90} height={90} className="object-contain" />
                                         <div>
                                             <div className="font-bold text-xl text-slate-800">RWA GARAGE</div>
-                                            <div className="text-xs text-muted-foreground font-small">Jl. Pandawa 1, Legian, Kec. Kuta, Kabupaten Badung</div>
-                                            <div className="text-xs text-muted-foreground font-small">Bali - 80361</div>
+                                            <div className="text-xs text-muted-foreground font-small">Jl. Pandawa 1, Legian, Kec. Kuta, Kabupaten Badung, Bali - 80361</div>
+                                            <div className="text-xs text-muted-foreground font-small">Email: rwagarage@gmail.com</div>
+                                            <div className="text-xs text-muted-foreground font-small">Telp: +62 813-5910-991</div>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <h1 className="text-4xl font-extrabold tracking-widest text-slate-800">INVOICE</h1>
+                                    <div className="text-left sm:text-right w-full sm:w-auto">
+                                        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-widest text-slate-800">INVOICE</h1>
                                     </div>
                                 </div>
 
                                 <div className="px-6 pb-6 border-b print:px-0">
-                                    <div className="grid grid-cols-2 gap-8 text-sm">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-sm">
                                         {/* Left Column */}
                                         <div className="space-y-1">
                                             <div className="grid grid-cols-[110px_auto_1fr] items-center">
@@ -410,14 +410,9 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                 <span className="font-medium px-2">:</span>
                                                 <span className="font-medium">
                                                     {isCreated ? (
-                                                        <Badge variant={isPaid ? "default" : isVoid ? "secondary" : "destructive"}
-                                                            className={`px-2 py-0 h-5 text-[10px] leading-tight ${invoice.status === 'PENDING' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200 print:bg-amber-100 print:text-amber-700' : ''}`}
-                                                            style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}
-                                                        >
-                                                            {invoice.status === 'PENDING' ? 'UNPAID' : invoice.status}
-                                                        </Badge>
+                                                        <span>{invoice.status}</span>
                                                     ) : (
-                                                        <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] leading-tight" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>DRAFT</Badge>
+                                                        <span>DRAFT</span>
                                                     )}
                                                 </span>
                                             </div>
@@ -430,8 +425,8 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
 
                     {/* --- MAIN CONTENT --- */}
                     <tbody>
-                        <tr>
-                            <td>
+                        <tr className="print:break-inside-auto" style={{ pageBreakInside: 'auto', breakInside: 'auto' }}>
+                            <td className="print:p-0">
                                 <CardContent className="pt-6 px-6 print:px-0">
 
                                     {/* Visit Diagnosis Details (Helper for Input) */}
@@ -530,11 +525,11 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                                 {item.cost ? item.cost.toLocaleString("id-ID") : "-"}
                                                             </td>
                                                         )}
-                                                        <td className="text-right py-3 flex items-center justify-end gap-2">
+                                                        <td className="text-right py-3 pr-2 sm:pr-0">
                                                             {isCreated || !isAdmin ? (
                                                                 <span>{item.price.toLocaleString("id-ID")}</span>
                                                             ) : (
-                                                                <div className="flex items-center gap-1 w-full">
+                                                                <div className="flex items-center justify-end gap-1 w-full">
                                                                     <input
                                                                         type="number"
                                                                         className="w-full text-right bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
@@ -624,9 +619,9 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                             <td className="print:px-0">
                                 <Separator className="my-6 print:my-2" />
 
-                                <div className="flex justify-between items-end mt-8 print:mt-4 w-full">
+                                <div className="flex flex-col-reverse sm:flex-row justify-between sm:items-end gap-6 sm:gap-0 mt-8 print:mt-4 w-full px-6 print:px-0">
                                     {/* Invoice Footer (Printed By) placed at the bottom left */}
-                                    <div className="pt-12 text-sm font-medium">
+                                    <div className="pt-2 sm:pt-8 text-sm font-medium">
                                         <div className="grid grid-cols-[80px_auto_1fr] items-center text-left">
                                             <span className="text-gray-600">Printed by</span>
                                             <span className="px-2">:</span>
@@ -635,7 +630,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                     </div>
 
                                     {/* Totals Section */}
-                                    <div className="w-1/2 space-y-2">
+                                    <div className="w-full sm:w-1/2 space-y-2">
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-muted-foreground">Subtotal</span>
                                             <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(subTotal)}</span>
@@ -661,11 +656,11 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                             <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(taxAmount)}</span>
                                         </div>
 
-                                        <div className="border-t-1 border-slate-200 my-1"></div>
+                                        <div className="border-t border-slate-200 my-1"></div>
 
-                                        <div className="flex justify-between items-center text-lg font-bold">
+                                        <div className="flex justify-between items-center text-lg sm:text-xl font-bold">
                                             <span>Grand Total</span>
-                                            <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount)}</span>
+                                            <span className="text-right">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -676,20 +671,20 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
 
                 {/* Footer Actions (Admin Only & Not Print) */}
                 {!isVoid && isAdmin && (
-                    <CardFooter className="bg-slate-50 border-t p-6 flex justify-end gap-3 print:hidden">
+                    <CardFooter className="bg-slate-50 border-t p-6 flex flex-col sm:flex-row justify-end gap-3 print:hidden">
                         {!isCreated ? (
-                            <Button variant="secondary" onClick={handleCreateInvoice} disabled={processing || lineItems.length === 0}>
+                            <Button variant="secondary" className="w-full sm:w-auto" onClick={handleCreateInvoice} disabled={processing || lineItems.length === 0}>
                                 Simpan & Buat Invoice
                             </Button>
                         ) : (
                             <>
                                 {!isPaid && (
-                                    <Button variant="destructive" onClick={() => initiateUpdateStatus("VOID")} disabled={processing}>
+                                    <Button variant="destructive" className="w-full sm:w-auto" onClick={() => initiateUpdateStatus("VOID")} disabled={processing}>
                                         <Ban className="h-4 w-4 mr-2" /> Batalkan INV
                                     </Button>
                                 )}
                                 {!isPaid && (
-                                    <Button className="bg-green-600 text-white hover:bg-green-700 hover:text-white focus-visible:ring-green-600 hover:focus-visible:ring-green-700"
+                                    <Button className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700 hover:text-white focus-visible:ring-green-600 hover:focus-visible:ring-green-700"
                                         onClick={() => initiateUpdateStatus("PAID")} disabled={processing}>
                                         <CreditCard className="h-4 w-4 mr-2" /> Tandai Lunas
                                     </Button>

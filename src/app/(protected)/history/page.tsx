@@ -323,7 +323,7 @@ export default function HistoryPage() {
                     <TableCell>{v.visitNumber}</TableCell>
                     <TableCell>
                       <div
-                        className="font-semibold text-blue-800 hover:text-sky-600 cursor-pointer"
+                        className="text-blue-600 hover:text-blue-800 cursor-pointer"
                         onClick={() => router.push(`/vehicles/${v.vehicle.id}`)}
                       >
                         {v.vehicle.engineNumber}

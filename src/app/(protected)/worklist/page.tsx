@@ -414,7 +414,7 @@ export default function WorklistPage() {
                   <TableRow key={v.id}>
                     <TableCell className="font-medium">
                       <span
-                        className="text-blue-800 cursor-pointer hover:text-sky-600"
+                        className="text-blue-600 cursor-pointer hover:text-blue-800"
                         onClick={() => {
                           setSelectedVisit(v);
                           setOpen(true);

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { id } from "date-fns/locale";
 import { Loader2, FileText, CheckCircle, Clock, MessageCircle, FilePlus, Eye, User } from "lucide-react";
 import PaginationControls from "@/components/shared/PaginationControls";
@@ -23,7 +23,7 @@ export default function BillingPageClient() {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
-    const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
+    const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
     const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
     const [page, setPage] = useState(1);
     const [metadata, setMetadata] = useState({ total: 0, page: 1, totalPages: 1, hasNext: false, hasPrev: false });
@@ -147,7 +147,7 @@ export default function BillingPageClient() {
                             </TableRow>
                         ) : visits.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                                     Tidak ada data yang ditemukan.
                                 </TableCell>
                             </TableRow>

@@ -17,6 +17,7 @@ import {
 import { format } from "date-fns";
 import InventoryPageClient from "./InventoryPageClient";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 import PurchaseList from "./PurchaseList";
 import SupplierList from "./SupplierList";
@@ -34,6 +35,8 @@ export default function InventoryDashboard() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
     const router = useRouter();
+    const { data: session } = useSession();
+    const isSuperAdmin = session?.user?.role === "SUPERADMIN";
 
     // Stock Opname States
     const [opnameSearchOpen, setOpnameSearchOpen] = useState(false);
@@ -202,14 +205,16 @@ export default function InventoryDashboard() {
                                     <User className="mr-2 h-4 w-4" />
                                     Kelola Supplier
                                 </Button>
-                                <Button
-                                    variant="secondary"
-                                    className="w-full justify-start text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100"
-                                    onClick={() => setOpnameSearchOpen(true)}
-                                >
-                                    <TrendingUp className="mr-2 h-4 w-4" />
-                                    Stock Opname / Adjustment
-                                </Button>
+                                {isSuperAdmin && (
+                                    <Button
+                                        variant="secondary"
+                                        className="w-full justify-start text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100"
+                                        onClick={() => setOpnameSearchOpen(true)}
+                                    >
+                                        <TrendingUp className="mr-2 h-4 w-4" />
+                                        Stock Opname / Adjustment
+                                    </Button>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

@@ -337,7 +337,7 @@ export default function MekanikWorklistPage() {
               <TableBody>
                 {visits.map((v) => (
                   <TableRow key={v.id}>
-                    <TableCell className="font-medium text-blue-800 hover:text-blue-600 cursor-pointer"
+                    <TableCell className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer"
                       onClick={() => {
                         setSelectedVisit(v);
                         setOpen(true);

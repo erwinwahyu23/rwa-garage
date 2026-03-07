@@ -8,9 +8,11 @@ import { VisitsReportTable } from "@/components/reports/VisitsReportTable";
 import { BillingReportTable } from "@/components/reports/BillingReportTable";
 import { StockReportTable } from "@/components/reports/StockReportTable";
 import { PurchasesReportTable } from "@/components/reports/PurchasesReportTable";
+import { OutflowReportTable } from "@/components/reports/OutflowReportTable";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 
 import { Loader2, FileDown } from "lucide-react";
 import { DatePicker } from "@/components/shared/DatePicker";
@@ -19,7 +21,8 @@ const REPORT_TITLES: Record<string, string> = {
     visits: "Laporan Kunjungan",
     billing: "Laporan Billing & Keuangan",
     stock: "Laporan Stok Opname & Audit",
-    purchases: "Laporan Pembelian Sparepart"
+    purchases: "Laporan Pembelian Sparepart",
+    outflow: "Laporan Pengeluaran Barang Harian"
 };
 
 export default function DynamicReportPage() {
@@ -89,13 +92,17 @@ export default function DynamicReportPage() {
             exportData = data.map(item => ({
                 "No. Kunjungan": item.visit?.visitNumber || "-",
                 "No. Invoice": item.invoiceNumber,
-                "Tanggal": format(new Date(item.createdAt), "dd/MM/yyyy"),
+                "Tgl. Invoice": format(new Date(item.createdAt), "dd/MM/yyyy"),
                 "Pelanggan": item.visit?.vehicle?.ownerName || "-",
                 "No. HP": item.visit?.vehicle?.phoneNumber || "-",
                 "Brand": item.visit?.vehicle?.brand || "-",
                 "Merk": item.visit?.vehicle?.model || "-",
                 "Mekanik": item.visit?.mechanic?.name || "-",
-                "Total": Number(item.totalAmount),
+                "Total Pembelian": Number(item.totalBeli) || 0,
+                "Total Penjualan Barang (Exclude Jasa)": Number(item.totalJualBarang) || 0,
+                "Jasa": Number(item.totalJasa) || 0,
+                "Selisih (Jual-Beli)": Number(item.selisih) || 0,
+                "Total Bill": Number(item.totalBill) || 0,
                 "Status": item.status
             }));
         } else if (reportType === 'stock') {
@@ -116,6 +123,18 @@ export default function DynamicReportPage() {
                 "Qty": item.quantity,
                 "Total": Number(item.costPrice) * item.quantity
             }));
+        } else if (reportType === 'outflow') {
+            exportData = data.map((item, index) => ({
+                "No": index + 1,
+                "No. Invoice": item.noInv,
+                "Kode Item": item.kode,
+                "Nama Item": item.namaItem,
+                "Jumlah": item.jumlah,
+                "Tgl. Keluar": format(new Date(item.tanggalKeluar), "dd MMM yyyy", { locale: idLocale }),
+                "Brand": item.brand,
+                "Merk": item.merk,
+                "No. Polisi": item.noPolisi
+            }));
         }
 
         const ws = XLSX.utils.json_to_sheet(exportData);
@@ -133,16 +152,16 @@ export default function DynamicReportPage() {
                 <p className="text-muted-foreground">Periode: {format(new Date(startDate), "dd/MM/yyyy")} - {format(new Date(endDate), "dd/MM/yyyy")}</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 items-end bg-gradient-to-br from-sky-900 via-sky-900 to-emerald-900 text-white p-4 rounded-lg border">
-                <div className="grid gap-2">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end bg-gradient-to-br from-sky-900 via-sky-900 to-emerald-900 text-white p-4 rounded-lg border">
+                <div className="grid gap-2 w-full sm:w-auto">
                     <label className="text-sm font-medium">Periode</label>
-                    <div className="flex items-center gap-2 text-black">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-black w-full">
                         <DatePicker
                             date={startDate ? new Date(startDate) : undefined}
                             onSelect={(d) => setStartDate(format(d, "yyyy-MM-dd"))}
                             className="bg-white w-full sm:w-auto"
                         />
-                        <span className="text-white font-medium">s/d</span>
+                        <span className="text-white font-medium self-center sm:self-auto">s/d</span>
                         <DatePicker
                             date={endDate ? new Date(endDate) : undefined}
                             onSelect={(d) => setEndDate(format(d, "yyyy-MM-dd"))}
@@ -175,6 +194,7 @@ export default function DynamicReportPage() {
                 {reportType === 'billing' && <BillingReportTable data={data} loading={loading} />}
                 {reportType === 'stock' && <StockReportTable data={data} loading={loading} />}
                 {reportType === 'purchases' && <PurchasesReportTable data={data} loading={loading} />}
+                {reportType === 'outflow' && <OutflowReportTable data={data} loading={loading} />}
             </div>
         </div>
     );

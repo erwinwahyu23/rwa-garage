@@ -56,7 +56,7 @@ export async function GET(
                 break;
 
             case "billing":
-                data = await prisma.invoice.findMany({
+                const invoicesForBilling = await prisma.invoice.findMany({
                     where: {
                         createdAt: { gte: start, lte: end },
                     },
@@ -69,6 +69,38 @@ export async function GET(
                         }
                     },
                     orderBy: { createdAt: "asc" }
+                });
+
+                data = invoicesForBilling.map(inv => {
+                    let totalBeli = 0;
+                    let totalJualBarang = 0;
+                    let totalJasa = 0;
+
+                    if (inv.items && Array.isArray(inv.items)) {
+                        for (const item of (inv.items as any[])) {
+                            const qty = Number(item.qty) || 0;
+                            const price = Number(item.price) || 0;
+                            const cost = Number(item.cost) || 0;
+
+                            if (item.type === 'PART') {
+                                totalBeli += (cost * qty);
+                                totalJualBarang += (price * qty);
+                            } else if (item.type === 'SERVICE') {
+                                totalJasa += (price * qty);
+                            }
+                        }
+                    }
+
+                    const selisih = totalJualBarang - totalBeli;
+
+                    return {
+                        ...inv,
+                        totalBeli,
+                        totalJualBarang,
+                        totalJasa,
+                        selisih,
+                        totalBill: inv.totalAmount
+                    };
                 });
                 break;
 
@@ -134,6 +166,47 @@ export async function GET(
                     },
                     orderBy: { purchaseDate: "desc" }
                 });
+                break;
+
+            case "outflow":
+                const invoices = await prisma.invoice.findMany({
+                    where: {
+                        createdAt: { gte: start, lte: end },
+                        status: { not: "VOID" }
+                    },
+                    include: {
+                        visit: {
+                            include: {
+                                vehicle: true,
+                                items: {
+                                    include: {
+                                        sparePart: true
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    orderBy: { createdAt: "desc" }
+                });
+
+                data = [];
+                for (const inv of invoices) {
+                    if (inv.visit && inv.visit.items) {
+                        for (const item of inv.visit.items) {
+                            if (!item.sparePart) continue; // Only actual spare parts
+                            data.push({
+                                kode: item.sparePart.code || "-",
+                                namaItem: item.sparePart.name || "-",
+                                tanggalKeluar: inv.createdAt,
+                                jumlah: item.quantity,
+                                brand: inv.visit.vehicle?.brand || "-",
+                                merk: inv.visit.vehicle?.model || "-",
+                                noPolisi: inv.visit.vehicle?.licensePlate || "-",
+                                noInv: inv.invoiceNumber
+                            });
+                        }
+                    }
+                }
                 break;
 
             default:

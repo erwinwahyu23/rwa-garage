@@ -208,7 +208,7 @@ export default function VehicleRecordPage() {
                   {listItems.map((v) => (
                     <tr
                       key={v.id}
-                      className="bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="bg-white hover:bg-yellow-200/40 transition-colors cursor-pointer"
                       role="button"
                       tabIndex={0}
                       onClick={() => router.push(`/vehicles/${v.id}`)}

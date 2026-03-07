@@ -39,7 +39,7 @@ export default function LoginForm() {
       });
 
       if (res?.error) {
-        setError("Username atau password anda salah, silahkan coba lagi");
+        setError("Login gagal. Username atau password tidak valid, atau akun Anda sedang dinonaktifkan. Silakan hubungi administrator.");
         setLoading(false);
         return;
       }

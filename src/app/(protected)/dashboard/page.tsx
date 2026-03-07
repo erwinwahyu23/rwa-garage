@@ -22,7 +22,8 @@ import {
   Calendar,
   Ban,
   FileText,
-  Clock
+  Clock,
+  FileDown
 } from "lucide-react";
 import {
   BarChart,
@@ -33,6 +34,9 @@ import {
   Tooltip,
   ResponsiveContainer
 } from "recharts";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -67,6 +71,26 @@ export default function DashboardPage() {
 
     fetchStats();
   }, []);
+
+  function exportChartToExcel() {
+    if (!stats.chartData || stats.chartData.length === 0) {
+      toast.error("Data grafik belum sedia");
+      return;
+    }
+
+    const exportData = stats.chartData.map((d: any) => ({
+      "Bulan": d.name,
+      "Total Kunjungan": d.total
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    XLSX.utils.book_append_sheet(wb, ws, "Tren Kunjungan");
+
+    const fileName = `Tren_Kunjungan_${format(new Date(), "yyyyMMdd")}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    toast.success("Grafik berhasil didownload");
+  }
 
   return (
     <div className="space-y-6">
@@ -163,11 +187,22 @@ export default function DashboardPage() {
 
         {/* CHART: Kunjungan per Bulan */}
         <Card className="col-span-1 lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Tren Kunjungan (6 Bulan Terakhir)</CardTitle>
-            <CardDescription>Grafik jumlah kendaraan masuk per bulan.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div className="space-y-1">
+              <CardTitle>Tren Kunjungan (6 Bulan Terakhir)</CardTitle>
+              <CardDescription>Grafik jumlah kendaraan masuk per bulan.</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportChartToExcel}
+              className="text-green-600 border-green-600 hover:bg-green-50"
+            >
+              <FileDown className="mr-2 h-4 w-4" />
+              Export Excel
+            </Button>
           </CardHeader>
-          <CardContent className="pl-2">
+          <CardContent className="pl-2 pt-4">
             <div className="h-[250px] w-full">
               {stats.chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">

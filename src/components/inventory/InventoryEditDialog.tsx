@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateSparePartSchema } from "@/lib/inventory/schemas";
+import { useSession } from "next-auth/react";
 import type { z } from "zod";
 
 type FormType = z.infer<typeof updateSparePartSchema>;
@@ -35,6 +36,8 @@ export default function InventoryEditDialog({ open, onOpenChange, item, onUpdate
   const [sellPrices, setSellPrices] = useState<{ brand: string; price: number; note?: string }[]>([]);
   const [newPriceBrand, setNewPriceBrand] = useState("");
   const [newPriceVal, setNewPriceVal] = useState("");
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.role === "SUPERADMIN";
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<any>({
     resolver: zodResolver(updateSparePartSchema),
@@ -191,9 +194,11 @@ export default function InventoryEditDialog({ open, onOpenChange, item, onUpdate
         <input type="hidden" defaultValue={item?.version ?? 1} {...register('version', { valueAsNumber: true })} />
 
         <Tabs defaultValue="info">
-          <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1">
+          <TabsList className={`grid w-full ${isSuperAdmin ? "grid-cols-2" : "grid-cols-1"} bg-slate-100 p-1`}>
             <TabsTrigger value="info" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Informasi Dasar</TabsTrigger>
-            <TabsTrigger value="prices" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Harga Jual</TabsTrigger>
+            {isSuperAdmin && (
+              <TabsTrigger value="prices" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Harga Jual</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="info" className="space-y-3 pt-2">
@@ -258,13 +263,23 @@ export default function InventoryEditDialog({ open, onOpenChange, item, onUpdate
                 <label className="text-sm mb-1 block">Satuan</label>
                 <div className="flex gap-2">
                   <Combobox
-                    options={units.map(u => ({ id: u, name: u }))}
+                    options={units.map((u: any) => {
+                      const val = typeof u === 'string' ? u : (u.name || String(u.id));
+                      return { id: val, name: val };
+                    })}
                     value={watch("unit")}
                     onChange={(val) => setValue("unit", val || "")}
                     onInput={(val) => {
                       if (!val) return;
-                      const match = units.find(u => u.toLowerCase() === val.toLowerCase());
-                      setValue("unit", match || val);
+                      const match: any = units.find((u: any) => {
+                        const uString = typeof u === 'string' ? u : (u.name || String(u.id));
+                        return uString.toLowerCase() === val.toLowerCase();
+                      });
+                      let unitVal = val;
+                      if (match) {
+                        unitVal = typeof match === 'string' ? match : (match.name || String(match.id));
+                      }
+                      setValue("unit", unitVal);
                     }}
                     placeholder="Pilih atau ketik satuan..."
                     className="w-full flex-1"
@@ -279,52 +294,54 @@ export default function InventoryEditDialog({ open, onOpenChange, item, onUpdate
             </div>
           </TabsContent>
 
-          <TabsContent value="prices" className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <label className="text-xs text-muted-foreground">Label / Brand</label>
-                  <Input
-                    value={newPriceBrand}
-                    onChange={(e) => setNewPriceBrand(e.target.value)}
-                    placeholder="Contoh: UMUM, GOJEK"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="text-xs text-muted-foreground">Harga Jual</label>
-                  <Input
-                    type="number"
-                    value={newPriceVal}
-                    onChange={(e) => setNewPriceVal(e.target.value)}
-                    placeholder="Rp 0"
-                  />
-                </div>
-                <Button type="button" size="sm" onClick={() => {
-                  if (!newPriceBrand || !newPriceVal) return;
-                  setSellPrices([...sellPrices, { brand: newPriceBrand, price: Number(newPriceVal) }]);
-                  setNewPriceBrand("");
-                  setNewPriceVal("");
-                }}>Tambah</Button>
-              </div>
-
-              <div className="border rounded-md">
-                {sellPrices.length === 0 && <div className="p-4 text-center text-sm text-gray-400">Belum ada harga jual diatur.</div>}
-                {sellPrices.map((sp, idx) => (
-                  <div key={idx} className="flex justify-between items-center p-2 border-b last:border-0 hover:bg-slate-50">
-                    <div>
-                      <div className="font-medium text-sm">{sp.brand}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(sp.price)}
-                      </div>
-                    </div>
-                    <Button type="button" variant="ghost" size="sm" className="text-red-500 h-6 w-6 p-0" onClick={() => {
-                      setSellPrices(sellPrices.filter((_, i) => i !== idx));
-                    }}>X</Button>
+          {isSuperAdmin && (
+            <TabsContent value="prices" className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-muted-foreground">Label / Brand</label>
+                    <Input
+                      value={newPriceBrand}
+                      onChange={(e) => setNewPriceBrand(e.target.value)}
+                      placeholder="Contoh: UMUM, GOJEK"
+                    />
                   </div>
-                ))}
+                  <div className="flex-1">
+                    <label className="text-xs text-muted-foreground">Harga Jual</label>
+                    <Input
+                      type="number"
+                      value={newPriceVal}
+                      onChange={(e) => setNewPriceVal(e.target.value)}
+                      placeholder="Rp 0"
+                    />
+                  </div>
+                  <Button type="button" size="sm" onClick={() => {
+                    if (!newPriceBrand || !newPriceVal) return;
+                    setSellPrices([...sellPrices, { brand: newPriceBrand, price: Number(newPriceVal) }]);
+                    setNewPriceBrand("");
+                    setNewPriceVal("");
+                  }}>Tambah</Button>
+                </div>
+
+                <div className="border rounded-md">
+                  {sellPrices.length === 0 && <div className="p-4 text-center text-sm text-gray-400">Belum ada harga jual diatur.</div>}
+                  {sellPrices.map((sp, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-2 border-b last:border-0 hover:bg-slate-50">
+                      <div>
+                        <div className="font-medium text-sm">{sp.brand}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(sp.price)}
+                        </div>
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" className="text-red-500 h-6 w-6 p-0" onClick={() => {
+                        setSellPrices(sellPrices.filter((_, i) => i !== idx));
+                      }}>X</Button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </TabsContent>
+            </TabsContent>
+          )}
         </Tabs>
 
         <Button className="w-full mt-4 text-white bg-sky-900 hover:bg-sky-700 justify-center" onClick={handleSubmit(onSubmit, onError)} disabled={loading}>

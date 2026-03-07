@@ -107,6 +107,7 @@ export default function InventoryPageClient({ initialItems, completeOnly }: { in
   const router = useRouter();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
+  const isSuperAdmin = session?.user?.role === "SUPERADMIN";
 
   // Debounce Search
   useEffect(() => {
@@ -357,9 +358,11 @@ export default function InventoryPageClient({ initialItems, completeOnly }: { in
                         }}>
                           <History className="mr-2 h-4 w-4" /> Riwayat Pembelian & Stok
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setSelected(sp); setAdjustOpen(true); }} disabled={!isAdmin}>
-                          <TrendingUp className="mr-2 h-4 w-4" /> Koreksi Stok / Opname
-                        </DropdownMenuItem>
+                        {isSuperAdmin && (
+                          <DropdownMenuItem onClick={() => { setSelected(sp); setAdjustOpen(true); }}>
+                            <TrendingUp className="mr-2 h-4 w-4" /> Koreksi Stok / Opname
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -411,9 +414,11 @@ export default function InventoryPageClient({ initialItems, completeOnly }: { in
                     }}>
                       <History className="mr-2 h-4 w-4" /> Riwayat
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { setSelected(sp); setAdjustOpen(true); }} disabled={!isAdmin}>
-                      <TrendingUp className="mr-2 h-4 w-4" /> Koreksi Stok
-                    </DropdownMenuItem>
+                    {isSuperAdmin && (
+                      <DropdownMenuItem onClick={() => { setSelected(sp); setAdjustOpen(true); }}>
+                        <TrendingUp className="mr-2 h-4 w-4" /> Koreksi Stok
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

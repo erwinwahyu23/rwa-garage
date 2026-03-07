@@ -65,6 +65,7 @@ export default function Sidebar({ role, onNavigate }: { role: string; onNavigate
         { label: "Billing", href: "/reports/billing" },
         { label: "Stok Opname", href: "/reports/stock" },
         { label: "Pembelian", href: "/reports/purchases" },
+        { label: "Pengeluaran Barang", href: "/reports/outflow" },
       ]
     });
   }
