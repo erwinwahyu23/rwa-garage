@@ -75,17 +75,17 @@ export default function DynamicReportPage() {
         if (reportType === 'visits') {
             exportData = data.map(item => ({
                 "No. Kunjungan": item.visitNumber,
-                "Tanggal": format(new Date(item.visitDate), "dd/MM/yyyy"),
-                "Merk": item.vehicle?.brand || '-',
-                "Model": item.vehicle?.model || '-',
-                "Nomor Mesin": item.vehicle?.engineNumber || '-',
+                "Tgl. Kunjungan": format(new Date(item.visitDate), "dd/MM/yyyy"),
+                "Brand": item.vehicle?.brand || '-',
+                "Merk": item.vehicle?.model || '-',
+                "No. Mesin": item.vehicle?.engineNumber || '-',
                 "No. Polisi": item.vehicle?.licensePlate || '-',
                 "Pemilik": item.vehicle?.ownerName || "-",
                 "Mekanik": item.mechanic?.name || "-",
+                "Keluhan": item.keluhan || "-",
                 "Diagnosis": item.diagnosis || "-",
-                "Pemeriksaan": item.pemeriksaan || "-",
                 "Perbaikan": item.perbaikan || "-",
-                "Sparepart (Note)": item.sparepart || "-",
+                "Sparepart": item.sparepart || "-",
                 "Status": item.status
             }));
         } else if (reportType === 'billing') {

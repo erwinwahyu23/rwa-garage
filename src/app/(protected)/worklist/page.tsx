@@ -378,7 +378,7 @@ export default function WorklistPage() {
                           Batalkan
                         </DropdownMenuItem>
                       )}
-                      {session?.user?.role === "SUPERADMIN" && v.status === "PROSES" && (
+                      {(session?.user?.role === "SUPERADMIN" || (session?.user?.role === "MEKANIK" && v.mechanic?.id === session?.user?.id)) && v.status === "PROSES" && (
                         <DropdownMenuItem
                           className="text-green-600 focus:text-green-600"
                           onClick={() => finishVisit(v.id)}
@@ -505,7 +505,7 @@ export default function WorklistPage() {
                               Batalkan Kunjungan
                             </DropdownMenuItem>
                           )}
-                          {session?.user?.role === "SUPERADMIN" && v.status === "PROSES" && (
+                          {(session?.user?.role === "SUPERADMIN" || (session?.user?.role === "MEKANIK" && v.mechanic?.id === session?.user?.id)) && v.status === "PROSES" && (
                             <DropdownMenuItem
                               className="text-green-600 focus:text-green-600 focus:bg-green-50"
                               onClick={() => finishVisit(v.id)}

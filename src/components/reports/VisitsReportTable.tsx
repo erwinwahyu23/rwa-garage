@@ -15,23 +15,23 @@ export function VisitsReportTable({ data, loading }: VisitsReportTableProps) {
                 <TableRow>
                     <TableHead>No. Kunjungan</TableHead>
                     <TableHead>Tgl. Kunjungan</TableHead>
+                    <TableHead>Brand</TableHead>
                     <TableHead>Merk</TableHead>
-                    <TableHead>Model</TableHead>
                     <TableHead>No. Mesin</TableHead>
                     <TableHead>No. Polisi</TableHead>
                     <TableHead>Pemilik</TableHead>
                     <TableHead>Mekanik</TableHead>
+                    <TableHead>Keluhan</TableHead>
                     <TableHead>Diagnosis</TableHead>
-                    <TableHead>Pemeriksaan</TableHead>
                     <TableHead>Perbaikan</TableHead>
-                    <TableHead>Sparepart (Note)</TableHead>
+                    <TableHead>Sparepart</TableHead>
                     <TableHead>Status</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {data.length === 0 ? (
                     <TableRow>
-                        <TableCell colSpan={12} className="h-24 text-center text-muted-foreground">
+                        <TableCell colSpan={13} className="h-24 text-center text-muted-foreground">
                             {loading ? "Memuat..." : "Tidak ada data. Klik 'Tampilkan Data'."}
                         </TableCell>
                     </TableRow>
@@ -47,8 +47,8 @@ export function VisitsReportTable({ data, loading }: VisitsReportTableProps) {
                                 <TableCell className="text-xs">{item.vehicle?.licensePlate}</TableCell>
                                 <TableCell>{item.vehicle?.ownerName || "-"}</TableCell>
                                 <TableCell>{item.mechanic?.name || "-"}</TableCell>
+                                <TableCell className="max-w-[200px] truncate" title={item.keluhan}>{item.keluhan || "-"}</TableCell>
                                 <TableCell className="max-w-[200px] truncate" title={item.diagnosis}>{item.diagnosis || "-"}</TableCell>
-                                <TableCell className="max-w-[200px] truncate" title={item.pemeriksaan}>{item.pemeriksaan || "-"}</TableCell>
                                 <TableCell className="max-w-[200px] truncate" title={item.perbaikan}>{item.perbaikan || "-"}</TableCell>
                                 <TableCell className="max-w-[200px] truncate" title={item.sparepart}>{item.sparepart || "-"}</TableCell>
                                 <TableCell>{item.status}</TableCell>
@@ -56,7 +56,7 @@ export function VisitsReportTable({ data, loading }: VisitsReportTableProps) {
                         ))}
                         {data.length > 10 && (
                             <TableRow>
-                                <TableCell colSpan={12} className="text-center text-xs text-muted-foreground py-2">
+                                <TableCell colSpan={13} className="text-center text-xs text-muted-foreground py-2">
                                     ...dan {data.length - 10} baris lainnya (Export ke Excel untuk lihat semua)
                                 </TableCell>
                             </TableRow>

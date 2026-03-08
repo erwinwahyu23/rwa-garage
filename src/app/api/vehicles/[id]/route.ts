@@ -78,8 +78,8 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await authorizeAdmin();
-  if (!session) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || !["ADMIN", "SUPERADMIN", "MEKANIK"].includes(session.user.role)) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 

@@ -143,12 +143,10 @@ export async function PATCH(
       //  VALIDASI DIAGNOSIS WAJIB ADA
       if (
         !visit.diagnosis ||
-        !visit.pemeriksaan ||
-        !visit.sparepart ||
         !visit.perbaikan
       ) {
         return NextResponse.json(
-          { message: "Diagnosis belum lengkap" },
+          { message: "Diagnosis & Perbaikan belum lengkap" },
           { status: 400 }
         );
       }

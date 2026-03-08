@@ -157,17 +157,9 @@ export default function DiagnosisForm({
             disabled={isReadOnly}
           />
         </div>
+
         <div className="flex flex-col gap-2">
-          <Label>Hasil Pemeriksaan</Label>
-          <Textarea
-            value={form.pemeriksaan}
-            onChange={(e) => update("pemeriksaan", e.target.value)}
-            rows={4}
-            disabled={isReadOnly}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label>Diagnosis</Label>
+          <Label>Hasil Pemeriksaan / Diagnosis</Label>
           <Textarea
             value={form.diagnosis}
             onChange={(e) => update("diagnosis", e.target.value)}

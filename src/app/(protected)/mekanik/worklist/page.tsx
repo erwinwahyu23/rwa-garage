@@ -109,8 +109,6 @@ export default function MekanikWorklistPage() {
 
   const isDiagnosisComplete = (v: Visit) =>
     v.diagnosis &&
-    v.pemeriksaan &&
-    v.sparepart &&
     v.perbaikan;
 
   const getStatusBadge = (status: string) => {
