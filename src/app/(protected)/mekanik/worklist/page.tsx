@@ -66,7 +66,8 @@ type Visit = {
   perbaikan?: string | null;
   vehicle: {
     id: string;
-    engineNumber: string;
+    engineNumber: string | null;
+    chassisNumber: string | null;
     licensePlate?: string | null;
     brand: string;
     model: string;
@@ -241,7 +242,9 @@ export default function MekanikWorklistPage() {
                         )}
                       </CardTitle>
                       <CardDescription className="font-mono text-xs mt-1">
-                        {v.vehicle.engineNumber}
+                        {v.vehicle.engineNumber ? `Mesin: ${v.vehicle.engineNumber}` : ""}
+                        {v.vehicle.engineNumber && v.vehicle.chassisNumber ? " | " : ""}
+                        {v.vehicle.chassisNumber ? `Rangka: ${v.vehicle.chassisNumber}` : ""}
                       </CardDescription>
                     </div>
                     {getStatusBadge(v.status)}
@@ -355,7 +358,11 @@ export default function MekanikWorklistPage() {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{v.vehicle.brand} {v.vehicle.model}</div>
-                      <div className="text-xs text-muted-foreground">{v.vehicle.engineNumber}</div>
+                      <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                        {v.vehicle.engineNumber ? <div>M: {v.vehicle.engineNumber}</div> : null}
+                        {v.vehicle.chassisNumber ? <div>R: {v.vehicle.chassisNumber}</div> : null}
+                        {!v.vehicle.engineNumber && !v.vehicle.chassisNumber && <div>-</div>}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {v.vehicle.licensePlate ? (
@@ -463,6 +470,7 @@ export default function MekanikWorklistPage() {
           vehicle={{
             id: selectedVisit.vehicle.id,
             engineNumber: selectedVisit.vehicle.engineNumber,
+            chassisNumber: selectedVisit.vehicle.chassisNumber,
             licensePlate: selectedVisit.vehicle.licensePlate, // Added
             brand: selectedVisit.vehicle.brand,
             model: selectedVisit.vehicle.model,

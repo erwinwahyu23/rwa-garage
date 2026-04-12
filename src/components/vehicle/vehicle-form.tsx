@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 type VehicleFormValues = {
   engineNumber: string;
+  chassisNumber: string;
   licensePlate: string;
   brand: string;
   model: string;
@@ -28,6 +29,7 @@ export default function VehicleForm({
 }: Props) {
   const [form, setForm] = useState<VehicleFormValues>({
     engineNumber: initialValues?.engineNumber || "",
+    chassisNumber: initialValues?.chassisNumber || "",
     licensePlate: initialValues?.licensePlate || "",
     brand: initialValues?.brand || "",
     model: initialValues?.model || "",
@@ -45,8 +47,8 @@ export default function VehicleForm({
   }
 
   async function handleSubmit() {
-    if (!form.engineNumber || !form.brand) {
-      toast.error("Nomor mesin dan merk wajib diisi");
+    if (!form.brand) {
+      toast.error("Merk wajib diisi");
       return;
     }
 
@@ -58,11 +60,20 @@ export default function VehicleForm({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>Nomor Mesin *</Label>
+        <Label>Nomor Mesin</Label>
         <Input
-          placeholder="Contoh: JM12345..."
+          placeholder="Contoh: JM12345... (Opsional)"
           value={form.engineNumber}
           onChange={(e) => update("engineNumber", e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Nomor Rangka</Label>
+        <Input
+          placeholder="Contoh: MH0123... (Opsional)"
+          value={form.chassisNumber}
+          onChange={(e) => update("chassisNumber", e.target.value)}
         />
       </div>
 

@@ -5,8 +5,9 @@ import { z } from "zod";
 
 const createInvoiceSchema = z.object({
     visitId: z.string(),
-    items: z.array(z.any()), // We store the whole snapshot
+    items: z.array(z.any()),
     totalAmount: z.number(),
+    globalDiscount: z.number().optional().default(0),
     ppn: z.number().optional().default(0),
     notes: z.string().optional(),
 });
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     try {
         const session = await requireAdmin();
         const body = await req.json();
-        const { visitId, items, totalAmount, ppn, notes } = createInvoiceSchema.parse(body);
+        const { visitId, items, totalAmount, globalDiscount, ppn, notes } = createInvoiceSchema.parse(body);
 
         // Check if active invoice exists
         const existing = await prisma.invoice.findFirst({
@@ -82,12 +83,23 @@ export async function POST(req: Request) {
                 data: {
                     visitId,
                     invoiceNumber: newInvoiceNumber,
-                    items: items as any,
                     totalAmount: totalAmount,
+                    globalDiscount: globalDiscount,
                     ppn: ppn,
                     status: "UNPAID",
                     notes,
-                    paymentMethod: null
+                    paymentMethod: null,
+                    invoiceItems: {
+                        create: items.map((item: any) => ({
+                            type: item.type || 'PART',
+                            sparePartId: item.type === 'PART' ? item.id : null,
+                            description: item.desc || "Item",
+                            quantity: Number(item.qty || item.quantity || 1),
+                            price: Number(item.price || 0),
+                            discount: Number(item.discount || 0),
+                            amount: Number(item.amount || 0)
+                        }))
+                    }
                 }
             });
 

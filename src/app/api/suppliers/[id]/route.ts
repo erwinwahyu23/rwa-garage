@@ -14,9 +14,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } | P
 
     if (!body || !body.name) return NextResponse.json({ error: 'name required' }, { status: 400 });
 
-    const updated = await prisma.supplier.update({ where: { id }, data: { name: body.name, contact: body.contact ?? undefined } });
+    const updated = await prisma.supplier.update({ where: { id }, data: { name: body.name, contact: body.contact ?? undefined, address: body.address ?? undefined } });
     const count = await prisma.sparePart.count({ where: { supplierId: id, isDeleted: false } });
-    return NextResponse.json({ id: updated.id, name: updated.name, contact: updated.contact, hasItems: count > 0 });
+    return NextResponse.json({ id: updated.id, name: updated.name, contact: updated.contact, address: updated.address, hasItems: count > 0 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Error' }, { status: 500 });
   }

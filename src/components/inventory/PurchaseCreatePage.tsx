@@ -57,6 +57,10 @@ export default function PurchaseCreatePage({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [addingCategoryLoading, setAddingCategoryLoading] = useState(false);
 
+  // Global Discount inputs
+  const [focusedInput, setFocusedInput] = useState<"PCT" | "NOM" | null>(null);
+  const [discountPct, setDiscountPct] = useState<string | number>("");
+
   /* ================= FORM (Main Data) ================= */
   const form = useForm<FormType>({
     resolver: zodResolver(schemas.createPurchasesSchema),
@@ -65,6 +69,7 @@ export default function PurchaseCreatePage({
       purchaseDate: format(new Date(), "yyyy-MM-dd"),
       supplierId: "",
       supplierRefNumber: "",
+      globalDiscount: 0,
       items: [],
     },
   });
@@ -84,6 +89,7 @@ export default function PurchaseCreatePage({
   const supplierId = watch("supplierId");
   const supplierRefNumber = watch("supplierRefNumber");
   const purchaseDate = watch("purchaseDate");
+  const globalDiscount = watch("globalDiscount") || 0;
   const items = watch("items");
 
   // Header Ready Calculation
@@ -211,16 +217,18 @@ export default function PurchaseCreatePage({
   }
 
 
-  /* ================= GRAND TOTAL =========== */
-  const grandTotal = useMemo(() => {
-    return (items || []).reduce((acc: number, item: any) => {
+  const subTotal = (items || []).reduce((acc: number, item: any) => {
       const qty = Number(item.quantity) || 0;
-      // We rely on the stored 'costPrice' (Net) which implies unitPrice - discount
-      // Or recalculate here to be safe
       const net = (Number(item.unitPrice) || 0) - (Number(item.discount) || 0);
       return acc + (qty * net);
-    }, 0);
-  }, [items]);
+  }, 0);
+
+  const displayPct = focusedInput === "PCT" ? discountPct : (globalDiscount && subTotal ? Math.round((globalDiscount / subTotal) * 10000) / 100 : "");
+
+  /* ================= GRAND TOTAL =========== */
+  const grandTotal = useMemo(() => {
+    return Math.max(0, subTotal - (Number(globalDiscount) || 0));
+  }, [subTotal, globalDiscount]);
 
 
   /* ================= SUBMIT =========== */
@@ -499,11 +507,68 @@ export default function PurchaseCreatePage({
             </Table>
 
             {/* TABLE FOOTER / GRAND TOTAL */}
-            <div className="mt-6 flex flex-col md:flex-row justify-end items-end md:items-center gap-2 md:gap-4 border-t pt-4">
-              <span className="text-sm md:text-lg text-muted-foreground font-medium">Grand Total:</span>
-              <span className="text-xl md:text-3xl font-bold">
-                {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(grandTotal)}
-              </span>
+            <div className="mt-6 flex justify-end border-t pt-4">
+              <div className="w-full sm:w-[400px] flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm md:text-lg text-muted-foreground font-medium">Subtotal:</span>
+                  <span className="text-lg font-bold">
+                    {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(subTotal)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-sm md:text-lg text-muted-foreground font-medium whitespace-nowrap">Diskon Global:</span>
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-24">
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        className="w-full pr-6 text-right"
+                        value={displayPct}
+                        onFocus={() => {
+                            setFocusedInput("PCT");
+                            setDiscountPct(globalDiscount && subTotal ? Math.round((globalDiscount / subTotal) * 10000) / 100 : "");
+                        }}
+                        onBlur={() => setFocusedInput(null)}
+                        onChange={(e) => {
+                           const val = e.target.value;
+                           setDiscountPct(val);
+                           if (!val) {
+                               setValue("globalDiscount", 0);
+                           } else {
+                               setValue("globalDiscount", subTotal * (Number(val) / 100));
+                           }
+                        }}
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                    </div>
+                    <span className="text-muted-foreground">=</span>
+                    <div className="relative w-32">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">Rp</span>
+                      <Input
+                        type="number"
+                        className="w-full text-right pl-7"
+                        value={globalDiscount || ""}
+                        onFocus={() => setFocusedInput("NOM")}
+                        onBlur={() => setFocusedInput(null)}
+                        onChange={(e) => {
+                           const val = e.target.value;
+                           if (!val) {
+                               setValue("globalDiscount", 0);
+                           } else {
+                               setValue("globalDiscount", Number(val));
+                           }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center border-t pt-3 mt-1">
+                  <span className="text-sm md:text-lg text-muted-foreground font-bold whitespace-nowrap">Grand Total:</span>
+                  <span className="text-xl md:text-3xl font-bold text-green-700 break-all text-right leading-tight">
+                    {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(grandTotal)}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="mt-8 flex justify-end gap-3">

@@ -31,6 +31,7 @@ export async function POST(req: Request) {
         supplierId: parsed.supplierId ?? null,
         supplierRefNumber: parsed.supplierRefNumber ?? undefined,
         purchaseDate: parsed.purchaseDate ?? undefined,
+        globalDiscount: parsed.globalDiscount ?? undefined,
         items: parsed.items.map((it) => ({
           sparePartId: it.sparePartId || undefined,
           sparePartCode: it.sparePartCode || undefined,

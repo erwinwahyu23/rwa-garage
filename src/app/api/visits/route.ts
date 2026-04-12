@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { vehicleId } = await req.json();
+  const { vehicleId, visitDate } = await req.json();
   if (!vehicleId) {
     return NextResponse.json(
       { message: "vehicleId wajib diisi" },
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
         status: "ANTRI",
         mechanicId:
           session.user.role === "MEKANIK" ? session.user.id : null,
+        ...(visitDate ? { visitDate: new Date(visitDate) } : {}),
         //createdById: session.user.id,
       },
     });
@@ -106,6 +107,7 @@ export async function GET(req: Request) {
       OR: [
         { visitNumber: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
         { vehicle: { engineNumber: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
+        { vehicle: { chassisNumber: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
         { vehicle: { ownerName: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
         // single-field brand/model fallback
         { vehicle: { brand: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
@@ -123,6 +125,7 @@ export async function GET(req: Request) {
         select: {
           id: true,
           engineNumber: true,
+          chassisNumber: true,
           licensePlate: true,
           brand: true,
           model: true,

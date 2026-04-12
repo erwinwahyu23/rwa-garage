@@ -33,6 +33,7 @@ export async function GET(req: Request) {
       id: r.id,
       name: r.name,
       contact: r.contact,
+      address: r.address,
       hasItems: r._count.spareParts > 0
     }));
 
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
     await requireAdmin();
     const body = await req.json();
     if (!body || !body.name) return NextResponse.json({ error: 'name required' }, { status: 400 });
-    const created = await prisma.supplier.create({ data: { name: body.name, contact: body.contact } });
+    const created = await prisma.supplier.create({ data: { name: body.name, contact: body.contact, address: body.address } });
     return NextResponse.json({ id: created.id, name: created.name, hasItems: false }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Error' }, { status: 500 });

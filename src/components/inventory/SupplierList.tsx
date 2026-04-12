@@ -28,6 +28,7 @@ type Supplier = {
     id: string;
     name: string;
     contact?: string;
+    address?: string;
     hasItems?: boolean;
 };
 
@@ -115,6 +116,7 @@ export default function SupplierList() {
                         <TableRow className="bg-slate-100 border-b">
                             <TableHead>Nama Supplier</TableHead>
                             <TableHead>Kontak/No. Telp</TableHead>
+                            <TableHead>Alamat</TableHead>
                             <TableHead className="w-[100px] text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -141,6 +143,7 @@ export default function SupplierList() {
                                         </div>
                                     </TableCell>
                                     <TableCell>{s.contact || "-"}</TableCell>
+                                    <TableCell>{s.address || "-"}</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu modal={false}>
                                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -194,6 +197,7 @@ export default function SupplierList() {
                                     <div>
                                         <div className="font-bold text-base">{s.name}</div>
                                         <div className="text-sm text-muted-foreground">{s.contact || "-"}</div>
+                                        {s.address && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.address}</div>}
                                     </div>
                                 </div>
                                 <DropdownMenu modal={false}>

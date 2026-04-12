@@ -17,7 +17,8 @@ type Props = {
     onOpenChange: (open: boolean) => void;
     vehicle: {
         id: string;
-        engineNumber: string;
+        engineNumber: string | null;
+        chassisNumber?: string | null;
         licensePlate?: string | null;
         brand: string;
         model: string;
@@ -66,7 +67,8 @@ export default function VehicleEditDialog({
 
                 <VehicleForm
                     initialValues={{
-                        engineNumber: vehicle.engineNumber,
+                        engineNumber: vehicle.engineNumber || "",
+                        chassisNumber: vehicle.chassisNumber || "",
                         licensePlate: vehicle.licensePlate || "",
                         brand: vehicle.brand,
                         model: vehicle.model,

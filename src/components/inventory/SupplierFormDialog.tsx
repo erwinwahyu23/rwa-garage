@@ -12,6 +12,7 @@ type Supplier = {
     id: string;
     name: string;
     contact?: string;
+    address?: string;
 };
 
 export default function SupplierFormDialog({
@@ -26,14 +27,14 @@ export default function SupplierFormDialog({
     onSuccess: () => void;
 }) {
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({ name: "", contact: "" });
+    const [formData, setFormData] = useState({ name: "", contact: "", address: "" });
 
     useEffect(() => {
         if (open) {
             if (existingSupplier) {
-                setFormData({ name: existingSupplier.name, contact: existingSupplier.contact || "" });
+                setFormData({ name: existingSupplier.name, contact: existingSupplier.contact || "", address: existingSupplier.address || "" });
             } else {
-                setFormData({ name: "", contact: "" });
+                setFormData({ name: "", contact: "", address: "" });
             }
         }
     }, [open, existingSupplier]);
@@ -92,6 +93,15 @@ export default function SupplierFormDialog({
                             placeholder="08123xxx / Pak Budi"
                             value={formData.contact}
                             onChange={(e) => setFormData(prev => ({ ...prev, contact: e.target.value }))}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="address">Alamat (Opsional)</Label>
+                        <Input
+                            id="address"
+                            placeholder="Jl. Raya Utama No.123"
+                            value={formData.address}
+                            onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                         />
                     </div>
                     <DialogFooter>

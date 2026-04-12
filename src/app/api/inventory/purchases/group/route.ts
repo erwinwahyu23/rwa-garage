@@ -11,6 +11,7 @@ const updateSchema = z.object({
     supplierId: z.string().min(1),
     supplierRefNumber: z.string().optional(),
     purchaseDate: z.string().optional(),
+    globalDiscount: z.number().nonnegative().optional(),
     items: z.array(z.any()).min(1),
 });
 
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest) {
             supplierId: first.supplierId,
             supplierRefNumber: first.supplierRefNumber,
             purchaseDate: first.purchaseDate,
+            globalDiscount: Number(first.globalDiscount || 0),
             items: purchases.map(p => ({
                 sparePartId: p.sparePartId,
                 sparePartCode: p.sparePart?.code || p.sparePartCode,

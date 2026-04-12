@@ -412,6 +412,7 @@ export async function createPurchases(payload: {
   supplierId: string | null;
   supplierRefNumber?: string | null;
   purchaseDate?: string | null;
+  globalDiscount?: number;
   items: Array<{
     sparePartId?: string | null;
     sparePartCode?: string | null;
@@ -485,6 +486,7 @@ export async function createPurchases(payload: {
           quantity: item.quantity,
           unitPrice: new Prisma.Decimal(item.unitPrice ?? item.costPrice),
           discount: new Prisma.Decimal(item.discount ?? 0),
+          globalDiscount: new Prisma.Decimal(payload.globalDiscount ?? 0),
           costPrice: new Prisma.Decimal(item.costPrice),
           supplierId: payload.supplierId ?? undefined,
           supplierRefNumber: payload.supplierRefNumber ?? undefined,
@@ -535,6 +537,7 @@ export async function updatePurchaseGroup(
     supplierId: string | null;
     supplierRefNumber?: string | null;
     purchaseDate?: string | null;
+    globalDiscount?: number;
     items: Array<{
       sparePartId?: string | null;
       sparePartCode?: string | null;
@@ -643,6 +646,7 @@ export async function updatePurchaseGroup(
           quantity: item.quantity,
           unitPrice: new Prisma.Decimal(item.unitPrice ?? item.costPrice),
           discount: new Prisma.Decimal(item.discount ?? 0),
+          globalDiscount: new Prisma.Decimal(payload.globalDiscount ?? 0),
           costPrice: new Prisma.Decimal(item.costPrice),
           supplierId: payload.supplierId ?? undefined,
           supplierRefNumber: payload.supplierRefNumber ?? undefined,

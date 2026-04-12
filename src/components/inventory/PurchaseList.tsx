@@ -18,6 +18,7 @@ type PurchaseItem = {
     quantity: number;
     costPrice: number;
     supplier?: { id: string; name: string };
+    globalDiscount?: number;
 };
 
 export default function PurchaseList() {
@@ -85,6 +86,7 @@ export default function PurchaseList() {
                 date: curr.purchaseDate,
                 supplierId: curr.supplier?.id,
                 supplierName: curr.supplier?.name || "Unknown Supplier",
+                globalDiscount: Number(curr.globalDiscount || 0),
                 items: [],
                 totalAmount: 0,
             };
@@ -93,9 +95,12 @@ export default function PurchaseList() {
         acc[key].items.push(curr);
         acc[key].totalAmount += cost * curr.quantity;
         return acc;
-    }, {} as Record<string, { key: string; ref: string; date: string; supplierId?: string; supplierName: string; items: PurchaseItem[]; totalAmount: number }>);
+    }, {} as Record<string, { key: string; ref: string; date: string; supplierId?: string; supplierName: string; globalDiscount: number; items: PurchaseItem[]; totalAmount: number }>);
 
-    const groups = Object.values(grouped).sort((a, b) =>
+    const groups = Object.values(grouped).map(g => ({
+        ...g,
+        totalAmount: Math.max(0, g.totalAmount - g.globalDiscount)
+    })).sort((a, b) =>
         new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
     );
 

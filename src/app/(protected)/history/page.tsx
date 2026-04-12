@@ -259,7 +259,9 @@ export default function HistoryPage() {
                         )}
                       </CardTitle>
                       <CardDescription className="font-mono text-xs mt-1">
-                        {v.vehicle.engineNumber}
+                        {v.vehicle.engineNumber ? `Mesin: ${v.vehicle.engineNumber}` : ""}
+                        {v.vehicle.engineNumber && v.vehicle.chassisNumber ? " | " : ""}
+                        {v.vehicle.chassisNumber ? `Rangka: ${v.vehicle.chassisNumber}` : ""}
                       </CardDescription>
                     </div>
                     {getStatusBadge(v.status)}
@@ -323,10 +325,12 @@ export default function HistoryPage() {
                     <TableCell>{v.visitNumber}</TableCell>
                     <TableCell>
                       <div
-                        className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                        className="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
                         onClick={() => router.push(`/vehicles/${v.vehicle.id}`)}
                       >
-                        {v.vehicle.engineNumber}
+                        {v.vehicle.engineNumber ? <div>M: {v.vehicle.engineNumber}</div> : null}
+                        {v.vehicle.chassisNumber ? <div>R: {v.vehicle.chassisNumber}</div> : null}
+                        {!v.vehicle.engineNumber && !v.vehicle.chassisNumber && <div>-</div>}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {v.vehicle.brand} {v.vehicle.model}

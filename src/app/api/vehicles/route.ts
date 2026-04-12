@@ -40,6 +40,7 @@ export async function GET(req: Request) {
       select: {
         id: true,
         engineNumber: true,
+        chassisNumber: true,
         licensePlate: true,
         brand: true,
         model: true,
@@ -76,6 +77,7 @@ export async function GET(req: Request) {
     where: {
       OR: [
         { engineNumber: { contains: search, mode: "insensitive" } },
+        { chassisNumber: { contains: search, mode: "insensitive" } },
         { licensePlate: { contains: search, mode: "insensitive" } },
         { ownerName: { contains: search, mode: "insensitive" } },
         { phoneNumber: { contains: search, mode: "insensitive" } },
@@ -91,6 +93,7 @@ export async function GET(req: Request) {
     select: {
       id: true,
       engineNumber: true,
+      chassisNumber: true,
       licensePlate: true,
       brand: true,
       model: true,
@@ -117,6 +120,7 @@ export async function POST(req: Request) {
 
   const {
     engineNumber,
+    chassisNumber,
     licensePlate,
     brand,
     model,
@@ -128,35 +132,21 @@ export async function POST(req: Request) {
   // =====================
   // VALIDATION
   // =====================
-  if (!engineNumber || !brand) {
+  if (!brand) {
     return NextResponse.json(
-      { message: "Nomor mesin dan merk wajib diisi" },
+      { message: "Merk wajib diisi" },
       { status: 400 }
     );
   }
 
   try {
     // =====================
-    // DUPLICATE CHECK
-    // =====================
-    const existing = await prisma.vehicle.findUnique({
-      where: { engineNumber },
-      select: { id: true },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { message: "Nomor mesin sudah terdaftar" },
-        { status: 409 }
-      );
-    }
-
-    // =====================
     // CREATE VEHICLE ONLY
     // =====================
     const vehicle = await prisma.vehicle.create({
       data: {
-        engineNumber,
+        engineNumber: engineNumber || null,
+        chassisNumber: chassisNumber || null,
         licensePlate: licensePlate || null,
         brand,
         model: model || null,
@@ -174,7 +164,7 @@ export async function POST(req: Request) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
         return NextResponse.json(
-          { message: "Nomor mesin sudah terdaftar" },
+          { message: "Data sudah terdaftar (duplikat)" },
           { status: 409 }
         );
       }

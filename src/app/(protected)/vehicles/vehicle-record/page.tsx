@@ -15,7 +15,8 @@ import PaginationControls from "@/components/shared/PaginationControls";
 
 type Vehicle = {
   id: string;
-  engineNumber: string;
+  engineNumber: string | null;
+  chassisNumber: string | null;
   licensePlate?: string | null;
   brand: string;
   model: string | null;
@@ -198,6 +199,7 @@ export default function VehicleRecordPage() {
                 <thead className="bg-slate-100 border-b">
                   <tr>
                     <th className="p-3 font-medium">No Mesin</th>
+                    <th className="p-3 font-medium">No Rangka</th>
                     <th className="p-3 font-medium">No. Polisi</th>
                     <th className="p-3 font-medium">Brand / Merk</th>
                     <th className="p-3 font-medium">Pemilik</th>
@@ -219,7 +221,8 @@ export default function VehicleRecordPage() {
                         }
                       }}
                     >
-                      <td className="p-3">{v.engineNumber}</td>
+                      <td className="p-3">{v.engineNumber || '-'}</td>
+                      <td className="p-3">{v.chassisNumber || '-'}</td>
                       <td className="p-3">{v.licensePlate || '-'}</td>
                       <td className="p-3">{v.brand} {v.model || ''}</td>
                       <td className="p-3">{v.ownerName || '-'}</td>

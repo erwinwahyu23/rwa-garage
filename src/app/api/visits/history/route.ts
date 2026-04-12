@@ -130,6 +130,7 @@ export async function GET(req: Request) {
       OR: [
         { visitNumber: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
         { vehicle: { engineNumber: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
+        { vehicle: { chassisNumber: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
         { vehicle: { ownerName: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
         { vehicle: { brand: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
         { vehicle: { model: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },

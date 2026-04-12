@@ -15,7 +15,8 @@ import { Plus } from "lucide-react";
 
 type Vehicle = {
   id: string;
-  engineNumber: string;
+  engineNumber: string | null;
+  chassisNumber: string | null;
   brand: string;
   model: string;
   ownerName: string | null;
@@ -41,6 +42,7 @@ export default function VehicleEntryDialog({ onSuccess }: Props) {
   const [hasSearched, setHasSearched] = useState(false);
 
   const [openCreate, setOpenCreate] = useState(false);
+  const [visitDate, setVisitDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   /* ================= SEARCH ================= */
 
@@ -77,10 +79,13 @@ export default function VehicleEntryDialog({ onSuccess }: Props) {
   /* ================= ACTIONS ================= */
 
   async function createVisit(vehicleId: string) {
+    const isToday = visitDate === new Date().toISOString().slice(0, 10);
+    const datePayload = isToday ? undefined : visitDate;
+
     await fetch("/api/visits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ vehicleId }),
+      body: JSON.stringify({ vehicleId, visitDate: datePayload }),
     });
 
     setOpen(false);
@@ -105,6 +110,17 @@ export default function VehicleEntryDialog({ onSuccess }: Props) {
           <DialogHeader>
             <DialogTitle>Tambah Kendaraan / Kunjungan</DialogTitle>
           </DialogHeader>
+
+          {/* DATE PICKER */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Tanggal Kunjungan</label>
+            <input
+              type="date"
+              className="border px-3 py-2 rounded w-full md:w-1/3"
+              value={visitDate}
+              onChange={(e) => setVisitDate(e.target.value)}
+            />
+          </div>
 
           {/* SEARCH */}
           <input
@@ -131,7 +147,11 @@ export default function VehicleEntryDialog({ onSuccess }: Props) {
                   >
                     <div>
                       <div className="font-semibold">
-                        {v.brand} {v.model} — {v.engineNumber}
+                        {v.brand} {v.model}
+                        {(v.engineNumber || v.chassisNumber) && " — "}
+                        {v.engineNumber && `Mesin: ${v.engineNumber}`}
+                        {v.engineNumber && v.chassisNumber && " | "}
+                        {v.chassisNumber && `Rangka: ${v.chassisNumber}`}
                       </div>
                       <div className="text-sm text-gray-600">
                         Pemilik: {v.ownerName || "-"} | {v.phoneNumber || "-"}

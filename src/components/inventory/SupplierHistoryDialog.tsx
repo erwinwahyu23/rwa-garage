@@ -25,6 +25,7 @@ type PurchaseItem = {
     sparePart: { name: string; code: string };
     quantity: number;
     costPrice: number; // or unitPrice/discount if available
+    globalDiscount?: number;
     // ... other fields from API
 };
 
@@ -62,15 +63,19 @@ export default function SupplierHistoryDialog({
                 date: curr.purchaseDate,
                 items: [],
                 totalAmount: 0,
+                globalDiscount: Number(curr.globalDiscount || 0),
             };
         }
         const cost = Number(curr.costPrice) || 0; // Net cost
         acc[key].items.push(curr);
         acc[key].totalAmount += cost * curr.quantity;
         return acc;
-    }, {} as Record<string, { ref: string; date: string; items: PurchaseItem[]; totalAmount: number }>);
+    }, {} as Record<string, { ref: string; date: string; items: PurchaseItem[]; totalAmount: number; globalDiscount: number; }>);
 
-    const groups = Object.values(grouped).sort((a, b) =>
+    const groups = Object.values(grouped).map(g => ({
+        ...g,
+        totalAmount: Math.max(0, g.totalAmount - g.globalDiscount)
+    })).sort((a, b) =>
         new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
     );
 

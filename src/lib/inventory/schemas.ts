@@ -70,5 +70,6 @@ export const createPurchasesSchema = z.object({
   supplierId: z.string().min(1),
   supplierRefNumber: z.string().min(1),
   purchaseDate: z.string().min(1), // ISO date
+  globalDiscount: z.number().nonnegative().optional(),
   items: z.array(createPurchaseItemSchema).min(1),
 });

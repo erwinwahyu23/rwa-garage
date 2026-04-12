@@ -32,6 +32,7 @@ export async function GET(
       select: {
         id: true,
         engineNumber: true,
+        chassisNumber: true,
         licensePlate: true,
         brand: true,
         model: true,

@@ -216,21 +216,17 @@ export default function BillingPageClient() {
                                                                         const phone = visit.vehicle?.phoneNumber.replace(/\D/g, '').replace(/^0/, '62');
                                                                         const vehicleInfo = `${visit.vehicle?.brand || ''} ${visit.vehicle?.model || ''} / ${visit.vehicle?.licensePlate || ''}`.trim();
                                                                         const total = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(inv.totalAmount);
-                                                                        const date = format(new Date(inv.createdAt), "dd/MM/yyyy");
+                                                                        const owner = visit.vehicle?.ownerName || 'Pelanggan';
 
-                                                                        const message = `*RWA GARAGE*
-
-Halo Bapak/Ibu ${visit.vehicle?.ownerName || 'Pelanggan'},
-
-Kami informasikan bahwa pembayaran untuk invoice berikut telah kami terima dengan baik
-
-No. Invoice : ${inv.invoiceNumber}
-Kendaraan : ${vehicleInfo}
-Total Dibayarkan : ${total}
-Tanggal Pembayaran : ${date}
-
-Terima kasih atas kepercayaan Anda kepada RWA GARAGE.
-Semoga kendaraan selalu dalam kondisi prima`;
+                                                                        let message = "";
+                                                                        
+                                                                        if (inv.status === "UNPAID") {
+                                                                            message = `*RWA GARAGE*\n\nYth. Bapak/Ibu ${owner},\n\nKami sampaikan invoice untuk pembayaran dengan detail sebagai berikut:\n\nNo. Invoice : ${inv.invoiceNumber}\nKendaraan : ${vehicleInfo}\nTotal Pembayaran : ${total}\n\nPembayaran dapat dilakukan melalui:\n- Cash, atau\n- Transfer ke rekening a/n Komang Restu (BCA: 1462063011)\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
+                                                                        } else {
+                                                                            const paidDateObj = inv.paidAt ? new Date(inv.paidAt) : new Date(inv.createdAt);
+                                                                            const date = format(paidDateObj, "dd/MM/yyyy");
+                                                                            message = `*RWA GARAGE*\n\nHalo Bapak/Ibu ${owner},\nKami informasikan bahwa pembayaran untuk invoice berikut telah kami terima dengan baik.\n\nNo. Invoice : ${inv.invoiceNumber}\nKendaraan : ${vehicleInfo}\nTotal Dibayarkan : ${total}\nTanggal Pembayaran : ${date}\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
+                                                                        }
 
                                                                         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
                                                                     }}

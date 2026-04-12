@@ -23,6 +23,7 @@ export default async function Page(props: {
     const initialData = {
         supplierId: first.supplierId || "",
         supplierRefNumber: first.supplierRefNumber || "",
+        globalDiscount: Number(first.globalDiscount || 0),
         purchaseDate: first.purchaseDate ? first.purchaseDate.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
         items: purchases.map(p => ({
             sparePartId: p.sparePartId || undefined,

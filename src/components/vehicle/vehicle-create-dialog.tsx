@@ -23,6 +23,7 @@ type Props = {
 
 const EMPTY_FORM = {
   engineNumber: "",
+  chassisNumber: "",
   licensePlate: "",
   brand: "",
   model: "",
@@ -54,7 +55,7 @@ export default function VehicleCreateDialog({
 
   /* ================= SUBMIT ================= */
   async function handleSubmit() {
-    if (!form.engineNumber || !form.brand) return;
+    if (!form.brand) return;
 
     setLoading(true);
 
@@ -99,12 +100,23 @@ export default function VehicleCreateDialog({
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Nomor Mesin *</Label>
+            <Label>Nomor Mesin</Label>
             <Input
-              placeholder="Contoh: JM1234..."
+              placeholder="Contoh: JM1234... (Opsional)"
               value={form.engineNumber}
               onChange={(e) =>
                 setForm({ ...form, engineNumber: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Nomor Rangka</Label>
+            <Input
+              placeholder="Contoh: MH0123... (Opsional)"
+              value={form.chassisNumber}
+              onChange={(e) =>
+                setForm({ ...form, chassisNumber: e.target.value })
               }
             />
           </div>
@@ -180,7 +192,7 @@ export default function VehicleCreateDialog({
         <Button
           className="w-full"
           onClick={handleSubmit}
-          disabled={loading || !form.engineNumber || !form.brand}
+          disabled={loading || !form.brand}
         >
           {loading ? "Menyimpan..." : "Simpan & Buat Kunjungan"}
         </Button>

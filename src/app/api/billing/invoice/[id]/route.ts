@@ -15,6 +15,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         const invoice = await prisma.invoice.findUnique({
             where: { id },
             include: {
+                invoiceItems: true,
                 visit: {
                     include: {
                         vehicle: true,
@@ -47,7 +48,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         const body = await req.json();
         const { status, paymentMethod, notes } = body;
 
-        const oldInvoice = await prisma.invoice.findUnique({ where: { id } });
+        const oldInvoice = await prisma.invoice.findUnique({ where: { id }, include: { invoiceItems: true } });
         if (!oldInvoice) return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
 
         // Status Logic
@@ -57,7 +58,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
             const updatedInvoice = await prisma.invoice.update({
                 where: { id },
-                data: { status, paymentMethod, notes }
+                data: { status, paymentMethod, notes, paidAt: new Date() }
             });
             return NextResponse.json(updatedInvoice);
 
@@ -66,16 +67,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             // Stock was deducted on Creation (UNPAID) or PAID. 
             // So VOID means we must return items to stock.
 
-            const items = oldInvoice.items as any[] || [];
+            const items = oldInvoice.invoiceItems || [];
 
             await prisma.$transaction(async (tx) => {
-                await tx.invoice.update({ where: { id }, data: { status: "VOID" } });
+                await tx.invoice.update({ where: { id }, data: { status: "VOID", paidAt: null } });
 
                 for (const item of items) {
-                    const partId = item.sparePartId || (item.type === 'PART' ? item.id : null);
+                    const partId = item.sparePartId;
 
                     if (partId) {
-                        const qty = Number(item.qty || item.quantity || 0);
+                        const qty = item.quantity;
                         if (qty > 0) {
                             const part = await tx.sparePart.findUnique({ where: { id: partId } });
                             if (part) {

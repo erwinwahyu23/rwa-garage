@@ -41,7 +41,8 @@ import { format } from "date-fns";
 
 type Vehicle = {
   id: string;
-  engineNumber: string;
+  engineNumber: string | null;
+  chassisNumber: string | null;
   licensePlate?: string | null;
   brand: string;
   model: string;
@@ -150,7 +151,13 @@ export default function VehicleRecordPage() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold tracking-tight">Detail Kendaraan</h1>
-            <Badge variant="outline" className="font-mono text-xs">{vehicle.engineNumber}</Badge>
+            {(vehicle.engineNumber || vehicle.chassisNumber) && (
+              <Badge variant="outline" className="font-mono text-xs">
+                {vehicle.engineNumber ? `Mesin: ${vehicle.engineNumber}` : ""}
+                {vehicle.engineNumber && vehicle.chassisNumber ? " | " : ""}
+                {vehicle.chassisNumber ? `Rangka: ${vehicle.chassisNumber}` : ""}
+              </Badge>
+            )}
             {vehicle.licensePlate && (
               <Badge className="bg-sky-900 text-white hover:bg-sky-800 text-xs">{vehicle.licensePlate}</Badge>
             )}
@@ -191,7 +198,11 @@ export default function VehicleRecordPage() {
                   <div className="grid gap-3 pl-1">
                     <div className="grid grid-cols-3 gap-1">
                       <span className="text-sm text-slate-500">No. Mesin</span>
-                      <span className="col-span-2 text-sm font-medium font-mono">{vehicle.engineNumber}</span>
+                      <span className="col-span-2 text-sm font-medium font-mono">{vehicle.engineNumber || "-"}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      <span className="text-sm text-slate-500">No. Rangka</span>
+                      <span className="col-span-2 text-sm font-medium font-mono">{vehicle.chassisNumber || "-"}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-1">
                       <span className="text-sm text-slate-500">No. Polisi</span>

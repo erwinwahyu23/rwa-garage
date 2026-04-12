@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, CreditCard, Ban, FileText, AlertCircle } from "lucide-react";
+import { ArrowLeft, Printer, CreditCard, Ban, FileText, AlertCircle, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
     const [pendingStatus, setPendingStatus] = useState<"PAID" | "VOID" | null>(null);
 
     const [ppn, setPpn] = useState(0);
+    const [globalDiscount, setGlobalDiscount] = useState(0);
 
     // Initialize
     useEffect(() => {
@@ -53,8 +54,9 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                     const inv = await res.json();
                     setInvoice(inv);
                     setVisit(inv.visit);
-                    // Load PPN if exists
+                    // Load PPN & GlobalDiscount if exists
                     if (inv.ppn) setPpn(Number(inv.ppn));
+                    if (inv.globalDiscount) setGlobalDiscount(Number(inv.globalDiscount));
                 }
             } catch (err) {
                 toast.error("Gagal memuat data");
@@ -135,6 +137,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                 qty: 1,
                 cost: Number(part.costPrice) || 0,
                 price: bestPrice,
+                discount: 0,
                 amount: bestPrice * 1,
                 availablePrices: part.sellPrices || [] // Store for UI selector
             }
@@ -178,7 +181,8 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                         qty: vi.quantity || 1,
                         cost: Number(vi.sparePart?.costPrice || 0),
                         price: bestPrice,
-                        amount: (vi.quantity || 1) * bestPrice,
+                        discount: Number(vi.discount || 0),
+                        amount: ((vi.quantity || 1) * bestPrice) * (1 - (Number(vi.discount || 0) / 100)),
                         availablePrices: vi.sparePart?.sellPrices || []
                     };
                 });
@@ -189,14 +193,25 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
             } else {
                 setLineItems([]);
             }
-        } else if (invoice?.items) {
-            setLineItems(invoice.items);
+        } else if (invoice?.invoiceItems) {
+            // Map InvoiceItem back to UI format
+            setLineItems(invoice.invoiceItems.map((item: any) => ({
+                type: item.type,
+                id: item.sparePartId,
+                desc: item.description,
+                qty: item.quantity,
+                price: Number(item.price),
+                discount: Number(item.discount),
+                amount: Number(item.amount)
+            })));
         }
     }, [loading, invoice, visit]);
 
     const subTotal = lineItems.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
-    const taxAmount = subTotal * (ppn / 100);
-    const totalAmount = subTotal + taxAmount;
+    const globalDiscountAmount = subTotal * (globalDiscount / 100);
+    const dpp = subTotal - globalDiscountAmount;
+    const taxAmount = dpp * (ppn / 100);
+    const totalAmount = dpp + taxAmount;
 
     // Updates a line item
     function updateLineItem(index: number, field: string, value: any) {
@@ -206,9 +221,12 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
         if (field === 'qty') item.qty = Number(value);
         if (field === 'price') item.price = Number(value);
         if (field === 'desc') item.desc = value;
+        if (field === 'discount') item.discount = Number(value);
 
         // Recalc amount
-        item.amount = (item.qty || 0) * (item.price || 0);
+        const lineTotal = (item.qty || 0) * (item.price || 0);
+        const discAmount = lineTotal * ((item.discount || 0) / 100);
+        item.amount = lineTotal - discAmount;
         newItems[index] = item;
         setLineItems(newItems);
     }
@@ -233,6 +251,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                         sparePartId: item.type === 'PART' ? item.id : undefined // Explicitly map id to sparePartId
                     })),
                     totalAmount,
+                    globalDiscount, // Send global discount percent
                     ppn, // Send PPN
                     notes: "Created via Web"
                 })
@@ -281,6 +300,51 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
 
     function handlePrint() {
         window.print();
+    }
+
+    function sendWaUnpaid() {
+        if (!invoice || !visit) return;
+        const owner = visit.vehicle?.ownerName || "XXX";
+        const invNo = invoice.invoiceNumber || "";
+        const vehicleInfo = `${visit.vehicle?.brand || ""} ${visit.vehicle?.model || ""} / ${visit.vehicle?.licensePlate || ""}`;
+        const formattedTotal = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount);
+
+        const text = `*RWA GARAGE*\n\nYth. Bapak/Ibu ${owner},\n\nKami sampaikan invoice untuk pembayaran dengan detail sebagai berikut:\n\nNo. Invoice : ${invNo}\nKendaraan : ${vehicleInfo}\nTotal Pembayaran : ${formattedTotal}\n\nPembayaran dapat dilakukan melalui:\n- Cash, atau\n- Transfer ke rekening a/n Komang Restu (BCA: 1462063011)\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
+        
+        let phoneNumber = visit.vehicle?.phoneNumber;
+        if (phoneNumber) {
+            let cleanedPhone = phoneNumber.replace(/\D/g, "");
+            if (cleanedPhone.startsWith("0")) cleanedPhone = "62" + cleanedPhone.substring(1);
+            else if (!cleanedPhone.startsWith("62")) cleanedPhone = "62" + cleanedPhone;
+            window.open(`https://wa.me/${cleanedPhone}?text=${encodeURIComponent(text)}`, '_blank');
+        } else {
+            navigator.clipboard.writeText(text);
+            toast.warning("Nomor telp kosong. Teks WA disalin ke clipboard!");
+        }
+    }
+
+    function sendWaPaid() {
+        if (!invoice || !visit) return;
+        const owner = visit.vehicle?.ownerName || "XXX";
+        const invNo = invoice.invoiceNumber || "";
+        const vehicleInfo = `${visit.vehicle?.brand || ""} ${visit.vehicle?.model || ""} / ${visit.vehicle?.licensePlate || ""}`;
+        const formattedTotal = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount);
+        
+        const paidDateObj = invoice.paidAt ? new Date(invoice.paidAt) : new Date();
+        const paidDate = format(paidDateObj, "dd/MM/yyyy");
+
+        const text = `*RWA GARAGE*\n\nHalo Bapak/Ibu ${owner},\nKami informasikan bahwa pembayaran untuk invoice berikut telah kami terima dengan baik.\n\nNo. Invoice : ${invNo}\nKendaraan : ${vehicleInfo}\nTotal Dibayarkan : ${formattedTotal}\nTanggal Pembayaran : ${paidDate}\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
+        
+        let phoneNumber = visit.vehicle?.phoneNumber;
+        if (phoneNumber) {
+            let cleanedPhone = phoneNumber.replace(/\D/g, "");
+            if (cleanedPhone.startsWith("0")) cleanedPhone = "62" + cleanedPhone.substring(1);
+            else if (!cleanedPhone.startsWith("62")) cleanedPhone = "62" + cleanedPhone;
+            window.open(`https://wa.me/${cleanedPhone}?text=${encodeURIComponent(text)}`, '_blank');
+        } else {
+            navigator.clipboard.writeText(text);
+            toast.warning("Nomor telp kosong. Teks WA disalin ke clipboard!");
+        }
     }
 
     if (loading) return <div className="p-8 text-center">Loading...</div>;
@@ -489,6 +553,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                         <span className="print:hidden">Hrg Jual</span>
                                                         <span className="hidden print:inline">Hrg Item</span>
                                                     </th>
+                                                    <th className="text-right py-2 w-[100px]">Diskon (%)</th>
                                                     <th className="text-right py-2 w-[150px] pr-2">Subtotal</th>
                                                     {!isCreated && isAdmin && <th className="w-[40px] print:hidden"></th>}
                                                 </tr>
@@ -533,7 +598,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                                     <input
                                                                         type="number"
                                                                         className="w-full text-right bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
-                                                                        value={item.price}
+                                                                        value={item.price || ''}
                                                                         onChange={(e) => updateLineItem(idx, 'price', e.target.value)}
                                                                     />
                                                                     {item.availablePrices && item.availablePrices.length > 0 && (
@@ -557,6 +622,21 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                                             </div>
                                                                         </div>
                                                                     )}
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className="text-right py-3 pr-2 sm:pr-0">
+                                                            {isCreated || !isAdmin ? (
+                                                                <span>{Number(item.discount || 0)}%</span>
+                                                            ) : (
+                                                                <div className="flex items-center justify-end gap-1">
+                                                                    <input
+                                                                        type="number"
+                                                                        className="w-16 text-right bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
+                                                                        value={item.discount || ''}
+                                                                        onChange={(e) => updateLineItem(idx, 'discount', e.target.value)}
+                                                                    />
+                                                                    <span>%</span>
                                                                 </div>
                                                             )}
                                                         </td>
@@ -601,7 +681,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                     </div>
                                                 </div>
                                                 <div className="w-1/3 pt-7">
-                                                    <Button variant="secondary" className="w-full" onClick={() => setLineItems([...lineItems, { type: 'SERVICE', desc: "Biaya Jasa", qty: 1, cost: 0, price: 0, amount: 0 }])}>
+                                                    <Button variant="secondary" className="w-full" onClick={() => setLineItems([...lineItems, { type: 'SERVICE', desc: "Biaya Jasa", qty: 1, cost: 0, price: 0, discount: 0, amount: 0 }])}>
                                                         + Biaya Lain (Jasa)
                                                     </Button>
                                                 </div>
@@ -636,6 +716,30 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                             <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(subTotal)}</span>
                                         </div>
 
+                                        <div className="flex justify-between items-center text-sm mt-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-muted-foreground">Diskon Total</span>
+                                                {(!isCreated && isAdmin) ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <input
+                                                            type="number"
+                                                            className="w-12 text-center border rounded px-1 py-0.5 text-xs text-red-600 font-medium"
+                                                            value={globalDiscount || ''}
+                                                            onChange={(e) => setGlobalDiscount(Math.max(0, Number(e.target.value)))}
+                                                        />
+                                                        <span className="text-red-600">%</span>
+                                                    </div>
+                                                ) : (
+                                                    globalDiscount > 0 ? <span className="text-red-600">({globalDiscount}%)</span> : null
+                                                )}
+                                            </div>
+                                            {globalDiscount > 0 ? (
+                                                <span className="text-red-600">-{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(globalDiscountAmount)}</span>
+                                            ) : (
+                                                <span>-</span>
+                                            )}
+                                        </div>
+
                                         <div className="flex justify-between items-center text-sm">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-muted-foreground">PPN</span>
@@ -644,7 +748,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                         <input
                                                             type="number"
                                                             className="w-12 text-center border rounded px-1 py-0.5 text-xs"
-                                                            value={ppn}
+                                                            value={ppn || ''}
                                                             onChange={(e) => setPpn(Math.max(0, Number(e.target.value)))}
                                                         />
                                                         <span>%</span>
@@ -655,6 +759,13 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                             </div>
                                             <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(taxAmount)}</span>
                                         </div>
+
+                                        {(invoice?.status === "PAID" && invoice?.paidAt) && (
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-muted-foreground">Tgl Pembayaran</span>
+                                                <span className="font-medium text-slate-700">{format(new Date(invoice.paidAt), "dd/MM/yyyy HH:mm")}</span>
+                                            </div>
+                                        )}
 
                                         <div className="border-t border-slate-200 my-1"></div>
 
@@ -687,6 +798,16 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                     <Button className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700 hover:text-white focus-visible:ring-green-600 hover:focus-visible:ring-green-700"
                                         onClick={() => initiateUpdateStatus("PAID")} disabled={processing}>
                                         <CreditCard className="h-4 w-4 mr-2" /> Tandai Lunas
+                                    </Button>
+                                )}
+                                {invoice.status === "UNPAID" && (
+                                    <Button type="button" variant="outline" className="w-full sm:w-auto border-green-600 text-green-700 hover:bg-green-50" onClick={sendWaUnpaid}>
+                                        <MessageCircle className="w-4 h-4 mr-2" /> WA Tagihan
+                                    </Button>
+                                )}
+                                {invoice.status === "PAID" && (
+                                    <Button type="button" variant="outline" className="w-full sm:w-auto border-blue-600 text-blue-700 hover:bg-blue-50" onClick={sendWaPaid}>
+                                        <MessageCircle className="w-4 h-4 mr-2" /> WA Bukti Lunas
                                     </Button>
                                 )}
                             </>
