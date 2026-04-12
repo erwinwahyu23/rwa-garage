@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     );
   }
 
-  const vehicle = await prisma.vehicle.findUnique({
+  const vehicle = await prisma.vehicle.findFirst({
     where: { engineNumber },
     select: {
       id: true,
