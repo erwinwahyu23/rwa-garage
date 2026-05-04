@@ -18,11 +18,13 @@ type Visit = {
   sparepart?: string | null;
   perbaikan?: string | null;
   vehicle: {
-    engineNumber: string;
+    engineNumber: string | null;
+    chassisNumber?: string | null;
     licensePlate?: string | null;
     brand: string;
     model?: string | null;
     ownerName?: string | null;
+    phoneNumber?: string | null;
   };
   mechanic?: { id?: string; name?: string } | null;
   items?: { sparePartId: string; quantity: number; sparePart: { id: string; name: string; code: string } }[];

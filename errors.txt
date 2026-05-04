@@ -1,0 +1,11 @@
+src/app/(protected)/mekanik/worklist/page.tsx(450,15): error TS2719: Type 'Visit' is not assignable to type 'Visit'. Two different types with this name exist, but they are unrelated.
+  The types of 'vehicle.engineNumber' are incompatible between these types.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/app/(protected)/worklist/page.tsx(543,15): error TS2719: Type 'Visit' is not assignable to type 'Visit'. Two different types with this name exist, but they are unrelated.
+  The types of 'vehicle.engineNumber' are incompatible between these types.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/app/api/reports/[type]/route.ts(79,29): error TS2339: Property 'items' does not exist on type '{ visit: { vehicle: { id: string; engineNumber: string | null; chassisNumber: string | null; licensePlate: string | null; brand: string; model: string | null; year: number | null; ownerName: string | null; phoneNumber: string | null; createdById: string | null; createdAt: Date; updatedAt: Date; }; mechanic: { ...; }...'.
+src/app/api/reports/[type]/route.ts(79,56): error TS2339: Property 'items' does not exist on type '{ visit: { vehicle: { id: string; engineNumber: string | null; chassisNumber: string | null; licensePlate: string | null; brand: string; model: string | null; year: number | null; ownerName: string | null; phoneNumber: string | null; createdById: string | null; createdAt: Date; updatedAt: Date; }; mechanic: { ...; }...'.
+src/app/api/reports/[type]/route.ts(80,49): error TS2339: Property 'items' does not exist on type '{ visit: { vehicle: { id: string; engineNumber: string | null; chassisNumber: string | null; licensePlate: string | null; brand: string; model: string | null; year: number | null; ownerName: string | null; phoneNumber: string | null; createdById: string | null; createdAt: Date; updatedAt: Date; }; mechanic: { ...; }...'.

@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import VehicleCreateDialog from "@/components/vehicle/vehicle-create-dialog";
+import { DatePicker } from "@/components/shared/DatePicker";
+import { format } from "date-fns";
 import { Plus } from "lucide-react";
 
 /* ================= TYPES ================= */
@@ -114,11 +116,12 @@ export default function VehicleEntryDialog({ onSuccess }: Props) {
           {/* DATE PICKER */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Tanggal Kunjungan</label>
-            <input
-              type="date"
-              className="border px-3 py-2 rounded w-full md:w-1/3"
-              value={visitDate}
-              onChange={(e) => setVisitDate(e.target.value)}
+            <DatePicker
+              date={visitDate ? new Date(visitDate) : undefined}
+              onSelect={(d) => {
+                if (d) setVisitDate(format(d, "yyyy-MM-dd"));
+              }}
+              className="w-full md:w-1/3"
             />
           </div>
 

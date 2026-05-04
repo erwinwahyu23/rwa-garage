@@ -7,7 +7,7 @@ async function main() {
     const engineNumber = "09798ZQ";
     console.log(`Searching for vehicle with engine number: ${engineNumber}`);
 
-    const vehicle = await prisma.vehicle.findUnique({
+    const vehicle = await prisma.vehicle.findFirst({
         where: { engineNumber },
     });
 

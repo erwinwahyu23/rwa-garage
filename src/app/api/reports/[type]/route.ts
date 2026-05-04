@@ -66,6 +66,11 @@ export async function GET(
                                 vehicle: true,
                                 mechanic: { select: { name: true } }
                             }
+                        },
+                        invoiceItems: {
+                            include: {
+                                sparePart: { select: { costPrice: true } }
+                            }
                         }
                     },
                     orderBy: { createdAt: "asc" }
@@ -76,11 +81,11 @@ export async function GET(
                     let totalJualBarang = 0;
                     let totalJasa = 0;
 
-                    if (inv.items && Array.isArray(inv.items)) {
-                        for (const item of (inv.items as any[])) {
-                            const qty = Number(item.qty) || 0;
+                    if (inv.invoiceItems && Array.isArray(inv.invoiceItems)) {
+                        for (const item of inv.invoiceItems) {
+                            const qty = Number(item.quantity) || 0;
                             const price = Number(item.price) || 0;
-                            const cost = Number(item.cost) || 0;
+                            const cost = item.sparePart ? Number(item.sparePart.costPrice) : 0;
 
                             if (item.type === 'PART') {
                                 totalBeli += (cost * qty);
