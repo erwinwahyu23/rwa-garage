@@ -173,6 +173,9 @@ export async function POST(req: Request) {
             }
 
             return [newInvoice];
+        }, {
+            maxWait: 5000, // default is 2000
+            timeout: 20000 // default is 5000 (5 seconds)
         });
 
         return NextResponse.json(invoice);

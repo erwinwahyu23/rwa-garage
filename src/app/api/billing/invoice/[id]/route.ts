@@ -122,6 +122,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
                         }
                     });
                 }
+            }, {
+                maxWait: 5000,
+                timeout: 20000
             });
 
             const updatedInvoice = await prisma.invoice.findUnique({
