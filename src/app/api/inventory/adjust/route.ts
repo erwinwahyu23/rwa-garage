@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const adjustSchema = z.object({
     sparePartId: z.string(),
-    delta: z.number().int(), // positive or negative
+    delta: z.number(), // positive or negative
     reason: z.string().min(1),
     referenceId: z.string().optional(),
 });

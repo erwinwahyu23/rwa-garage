@@ -12,6 +12,7 @@ import Image from "next/image";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatQuantity } from "@/lib/utils";
 import { id as idLocale } from "date-fns/locale";
 
 type Props = {
@@ -36,6 +37,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
 
     const [ppn, setPpn] = useState(0);
     const [globalDiscount, setGlobalDiscount] = useState(0);
+    const [useDepositAmount, setUseDepositAmount] = useState(0);
 
     // Initialize
     useEffect(() => {
@@ -211,7 +213,20 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
     const globalDiscountAmount = subTotal * (globalDiscount / 100);
     const dpp = subTotal - globalDiscountAmount;
     const taxAmount = dpp * (ppn / 100);
-    const totalAmount = dpp + taxAmount;
+    const grossTotalAmount = dpp + taxAmount;
+    const depositBalance = visit?.vehicle?.depositBalance || 0;
+
+    const [autoDeposit, setAutoDeposit] = useState(true);
+
+    useEffect(() => {
+        if (!invoice && autoDeposit && depositBalance > 0) {
+            setUseDepositAmount(Math.min(depositBalance, grossTotalAmount));
+        }
+    }, [grossTotalAmount, depositBalance, autoDeposit, invoice]);
+
+    // For created invoices, show what was actually used. For new ones, show what user inputs.
+    const displayedUsedDeposit = invoice ? (invoice?.usedDeposit || 0) : useDepositAmount;
+    const finalGrandTotal = grossTotalAmount - displayedUsedDeposit;
 
     // Updates a line item
     function updateLineItem(index: number, field: string, value: any) {
@@ -250,9 +265,10 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                         ...item,
                         sparePartId: item.type === 'PART' ? item.id : undefined // Explicitly map id to sparePartId
                     })),
-                    totalAmount,
+                    totalAmount: grossTotalAmount, // Original total before deposit
                     globalDiscount, // Send global discount percent
                     ppn, // Send PPN
+                    useDepositAmount, // Send used deposit amount
                     notes: "Created via Web"
                 })
             });
@@ -307,10 +323,17 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
         const owner = visit.vehicle?.ownerName || "XXX";
         const invNo = invoice.invoiceNumber || "";
         const vehicleInfo = `${visit.vehicle?.brand || ""} ${visit.vehicle?.model || ""} / ${visit.vehicle?.licensePlate || ""}`;
-        const formattedTotal = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount);
+        const grossTotalValue = isCreated ? Number(invoice.totalAmount) : Number(grossTotalAmount);
+        const depositValue = isCreated ? Number(invoice.usedDeposit || 0) : Number(useDepositAmount);
+        const finalGrandTotalValue = grossTotalValue - depositValue;
 
-        const text = `*RWA GARAGE*\n\nYth. Bapak/Ibu ${owner},\n\nKami sampaikan invoice untuk pembayaran dengan detail sebagai berikut:\n\nNo. Invoice : ${invNo}\nKendaraan : ${vehicleInfo}\nTotal Pembayaran : ${formattedTotal}\n\nPembayaran dapat dilakukan melalui:\n- Cash, atau\n- Transfer ke rekening a/n Komang Restu (BCA: 1462063011)\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
-        
+        const formattedGrossTotal = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(grossTotalValue);
+        const formattedDeposit = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(depositValue);
+        const formattedFinal = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(finalGrandTotalValue);
+
+        const invoiceUrl = `${window.location.origin}/invoice/${invoice?.id}`;
+        const text = `*RWA GARAGE*\n\nYth. Bapak/Ibu ${owner},\n\nKami sampaikan invoice untuk pembayaran dengan detail sebagai berikut:\n\nNo. Invoice : ${invNo}\nKendaraan : ${vehicleInfo}\nTotal Pembayaran : ${formattedGrossTotal}\nDown Payment : ${formattedDeposit}\nSisa Pembayaran : ${formattedFinal}\n\nPembayaran dapat dilakukan melalui:\n- Cash, atau\n- Transfer ke rekening a/n Komang Restu (BCA: 1462063011)\n\nLihat & unduh detail invoice Anda di sini:\n${invoiceUrl}\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
+
         let phoneNumber = visit.vehicle?.phoneNumber;
         if (phoneNumber) {
             let cleanedPhone = phoneNumber.replace(/\D/g, "");
@@ -328,13 +351,14 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
         const owner = visit.vehicle?.ownerName || "XXX";
         const invNo = invoice.invoiceNumber || "";
         const vehicleInfo = `${visit.vehicle?.brand || ""} ${visit.vehicle?.model || ""} / ${visit.vehicle?.licensePlate || ""}`;
-        const formattedTotal = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount);
-        
+        const formattedTotal = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(finalGrandTotal);
+
         const paidDateObj = invoice.paidAt ? new Date(invoice.paidAt) : new Date();
         const paidDate = format(paidDateObj, "dd/MM/yyyy");
 
-        const text = `*RWA GARAGE*\n\nHalo Bapak/Ibu ${owner},\nKami informasikan bahwa pembayaran untuk invoice berikut telah kami terima dengan baik.\n\nNo. Invoice : ${invNo}\nKendaraan : ${vehicleInfo}\nTotal Dibayarkan : ${formattedTotal}\nTanggal Pembayaran : ${paidDate}\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
-        
+        const invoiceUrl = `${window.location.origin}/invoice/${invoice?.id}`;
+        const text = `*RWA GARAGE*\n\nHalo Bapak/Ibu ${owner},\nKami informasikan bahwa pembayaran untuk invoice berikut telah kami terima dengan baik.\n\nNo. Invoice : ${invNo}\nKendaraan : ${vehicleInfo}\nTotal Dibayarkan : ${formattedTotal}\nTanggal Pembayaran : ${paidDate}\n\nLihat & unduh detail invoice Anda di sini:\n${invoiceUrl}\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
+
         let phoneNumber = visit.vehicle?.phoneNumber;
         if (phoneNumber) {
             let cleanedPhone = phoneNumber.replace(/\D/g, "");
@@ -457,7 +481,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                             <div className="grid grid-cols-[120px_auto_1fr] items-center">
                                                 <span className="text-gray-600">Tanggal Cetak</span>
                                                 <span className="font-medium px-2">:</span>
-                                                <span className="font-medium">{format(new Date(), "dd-MMM-yyyy / HH:mm")}</span>
+                                                <span className="font-medium">{format(new Date(), "dd-MMM-yyyy")}</span>
                                             </div>
                                             <div className="grid grid-cols-[120px_auto_1fr] items-center">
                                                 <span className="text-gray-600">Kunjungan</span>
@@ -521,7 +545,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                             <ul className="list-disc list-inside">
                                                                 {visit.items.map((item: any, idx: number) => (
                                                                     <li key={idx}>
-                                                                        {item.quantity}x {item.sparePart?.name || item.name || "Item"}
+                                                                        {formatQuantity(item.quantity)}x {item.sparePart?.name || item.name || "Item"}
                                                                     </li>
                                                                 ))}
                                                             </ul>
@@ -562,7 +586,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                 {lineItems.map((item, idx) => (
                                                     <tr key={idx} className="bg-white border-b border-dashed last:border-solid last:border-slate-300 hover:bg-slate-50">
                                                         <td className="py-3 px-2">
-                                                            {isCreated || !isAdmin || item.type === 'PART' ? (
+                                                            {isCreated || !isAdmin ? (
                                                                 <span>{item.desc}</span>
                                                             ) : (
                                                                 <input
@@ -575,10 +599,10 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                         </td>
                                                         <td className="text-center py-3">
                                                             {isCreated || !isAdmin ? (
-                                                                <span>{item.qty}</span>
+                                                                <span>{formatQuantity(item.qty)}</span>
                                                             ) : (
                                                                 <input
-                                                                    type="number"
+                                                                    type="number" step="any"
                                                                     className="w-full text-center bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
                                                                     value={item.qty}
                                                                     onChange={(e) => updateLineItem(idx, 'qty', e.target.value)}
@@ -596,7 +620,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                             ) : (
                                                                 <div className="flex items-center justify-end gap-1 w-full">
                                                                     <input
-                                                                        type="number"
+                                                                        type="number" step="any"
                                                                         className="w-full text-right bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
                                                                         value={item.price || ''}
                                                                         onChange={(e) => updateLineItem(idx, 'price', e.target.value)}
@@ -631,7 +655,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                             ) : (
                                                                 <div className="flex items-center justify-end gap-1">
                                                                     <input
-                                                                        type="number"
+                                                                        type="number" step="any"
                                                                         className="w-16 text-right bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1"
                                                                         value={item.discount || ''}
                                                                         onChange={(e) => updateLineItem(idx, 'discount', e.target.value)}
@@ -722,7 +746,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                 {(!isCreated && isAdmin) ? (
                                                     <div className="flex items-center gap-1">
                                                         <input
-                                                            type="number"
+                                                            type="number" step="any"
                                                             className="w-12 text-center border rounded px-1 py-0.5 text-xs text-red-600 font-medium"
                                                             value={globalDiscount || ''}
                                                             onChange={(e) => setGlobalDiscount(Math.max(0, Number(e.target.value)))}
@@ -746,7 +770,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                                 {(!isCreated && isAdmin) ? (
                                                     <div className="flex items-center gap-1">
                                                         <input
-                                                            type="number"
+                                                            type="number" step="any"
                                                             className="w-12 text-center border rounded px-1 py-0.5 text-xs"
                                                             value={ppn || ''}
                                                             onChange={(e) => setPpn(Math.max(0, Number(e.target.value)))}
@@ -760,10 +784,37 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                                             <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(taxAmount)}</span>
                                         </div>
 
-                                        {(invoice?.status === "PAID" && invoice?.paidAt) && (
-                                            <div className="flex justify-between items-center text-sm">
-                                                <span className="text-muted-foreground">Tgl Pembayaran</span>
-                                                <span className="font-medium text-slate-700">{format(new Date(invoice.paidAt), "dd/MM/yyyy HH:mm")}</span>
+                                        {/* DEPOSIT SECTION */}
+                                        {(depositBalance > 0 || displayedUsedDeposit > 0) && (
+                                            <div className="flex justify-between items-center text-sm pt-2">
+                                                <div className="flex items-center gap-2 text-blue-700">
+                                                    <span className="font-medium">Deposit</span>
+                                                    {(!isCreated && isAdmin) ? (
+                                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                            (Saldo: Rp {depositBalance.toLocaleString("id-ID")})
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+                                                {(!isCreated && isAdmin) ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="text-blue-700 font-medium">- Rp</span>
+                                                        <input
+                                                            type="number" step="any"
+                                                            className="w-24 text-right border rounded px-1 py-0.5 text-xs font-medium text-blue-700"
+                                                            value={useDepositAmount || ''}
+                                                            max={depositBalance}
+                                                            onChange={(e) => {
+                                                                setAutoDeposit(false);
+                                                                setUseDepositAmount(Math.min(depositBalance, Math.max(0, Number(e.target.value))));
+                                                            }}
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-blue-700 font-medium">
+                                                        - {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(displayedUsedDeposit)}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
 
@@ -771,7 +822,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
 
                                         <div className="flex justify-between items-center text-lg sm:text-xl font-bold">
                                             <span>Grand Total</span>
-                                            <span className="text-right">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalAmount)}</span>
+                                            <span className="text-right">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(finalGrandTotal)}</span>
                                         </div>
                                     </div>
                                 </div>

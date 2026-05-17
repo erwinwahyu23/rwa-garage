@@ -12,8 +12,8 @@ export const createSparePartSchema = z.object({
   category: z.string().optional(),
   categoryId: z.string().optional().nullable(),
   unit: z.string().default("Pcs"),
-  stock: z.number().int().nonnegative().default(0),
-  minStock: z.number().int().nonnegative().default(0),
+  stock: z.number().nonnegative().default(0),
+  minStock: z.number().nonnegative().default(0),
   costPrice: z.number().nonnegative().default(0),
   supplierId: z.string().optional().nullable(),
   initialSellPrices: z.array(sellPriceSchema).optional(),
@@ -26,8 +26,8 @@ export const updateSparePartSchema = z.object({
   categoryId: z.string().optional().nullable(),
   unit: z.string().optional(),
   // allow numeric values provided as strings (from form inputs) by preprocessing
-  stock: z.preprocess((v) => (typeof v === 'string' && v.trim() !== '' ? Number(v) : v), z.number().int().nonnegative().optional()),
-  minStock: z.preprocess((v) => (typeof v === 'string' && v.trim() !== '' ? Number(v) : v), z.number().int().nonnegative().optional()),
+  stock: z.preprocess((v) => (typeof v === 'string' && v.trim() !== '' ? Number(v) : v), z.number().nonnegative().optional()),
+  minStock: z.preprocess((v) => (typeof v === 'string' && v.trim() !== '' ? Number(v) : v), z.number().nonnegative().optional()),
   costPrice: z.preprocess((v) => (typeof v === 'string' && v.trim() !== '' ? Number(v) : v), z.number().nonnegative().optional()),
   supplierId: z.string().optional().nullable(),
   initialSellPrices: z.array(sellPriceSchema).optional(),
@@ -40,7 +40,7 @@ export const createPurchaseSchema = z.object({
   sparePartId: z.string().optional(),
   sparePartCode: z.string().optional(),
   sparePartName: z.string().optional(),
-  quantity: z.number().int().positive(),
+  quantity: z.number().positive(),
   costPrice: z.number().nonnegative(),
   supplierId: z.string().optional().nullable(),
   supplierRefNumber: z.string().optional(),
@@ -55,7 +55,7 @@ const createPurchaseItemSchema = z.object({
   sparePartId: z.string().optional(),
   sparePartCode: z.string().optional(),
   sparePartName: z.string().optional(),
-  quantity: z.number().int().positive(),
+  quantity: z.number().positive(),
   unitPrice: z.number().nonnegative().optional(), // Gross price per unit
   discount: z.number().nonnegative().optional(), // Discount per unit (Amount)
   discountPercent: z.number().nonnegative().optional(), // Discount percentage (UI helper)

@@ -2,6 +2,7 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { formatQuantity } from "@/lib/utils";
 
 interface StockReportTableProps {
     data: any[];
@@ -35,9 +36,9 @@ export function StockReportTable({ data, loading }: StockReportTableProps) {
                                 <TableCell>{index + 1}</TableCell>
                                 <TableCell>{item.sparePart?.code}</TableCell>
                                 <TableCell>{item.sparePart?.name}</TableCell>
-                                <TableCell>{item.stokFisik}</TableCell>
+                                <TableCell>{formatQuantity(item.stokFisik)}</TableCell>
                                 <TableCell className={item.stokLogic !== item.stokFisik ? "text-amber-600 font-medium" : ""}>
-                                    {item.stokLogic}
+                                    {formatQuantity(item.stokLogic)}
                                 </TableCell>
                                 <TableCell>{item.sparePart?.unit || "Pcs"}</TableCell>
                             </TableRow>

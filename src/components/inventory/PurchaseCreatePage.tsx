@@ -406,7 +406,7 @@ export default function PurchaseCreatePage({
               <div>
                 <label className="text-sm font-medium block mb-1">Qty</label>
                 <Input
-                  type="number"
+                  type="number" step="any"
                   value={staging.quantity}
                   onChange={e => setStaging(prev => ({ ...prev, quantity: Number(e.target.value) }))}
                 />
@@ -414,7 +414,7 @@ export default function PurchaseCreatePage({
               <div>
                 <label className="text-sm font-medium block mb-1">Hrg Satuan</label>
                 <Input
-                  type="number"
+                  type="number" step="any"
                   value={staging.unitPrice}
                   onChange={e => setStaging(prev => ({ ...prev, unitPrice: Number(e.target.value) }))}
                 />
@@ -426,8 +426,7 @@ export default function PurchaseCreatePage({
               <div className="col-span-1">
                 <label className="text-sm font-medium block mb-1">Diskon (%)</label>
                 <Input
-                  type="number"
-                  step="0.1"
+                  type="number" step="any"
                   value={staging.discountPercent}
                   onChange={e => setStaging(prev => ({ ...prev, discountPercent: Number(e.target.value) }))}
                   className="h-10"
@@ -520,7 +519,7 @@ export default function PurchaseCreatePage({
                   <div className="flex items-center gap-2">
                     <div className="relative w-24">
                       <Input
-                        type="number"
+                        type="number" step="any"
                         placeholder="0"
                         className="w-full pr-6 text-right"
                         value={displayPct}
@@ -545,7 +544,7 @@ export default function PurchaseCreatePage({
                     <div className="relative w-32">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">Rp</span>
                       <Input
-                        type="number"
+                        type="number" step="any"
                         className="w-full text-right pl-7"
                         value={globalDiscount || ""}
                         onFocus={() => setFocusedInput("NOM")}

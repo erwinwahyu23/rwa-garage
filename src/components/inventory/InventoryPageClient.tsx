@@ -39,6 +39,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import PaginationControls from "@/components/shared/PaginationControls";
+import { formatQuantity } from "@/lib/utils";
 
 function SellPriceCell({ sellPrices }: { sellPrices: any[] }) {
   const [expanded, setExpanded] = useState(false);
@@ -322,13 +323,13 @@ export default function InventoryPageClient({ initialItems, completeOnly }: { in
                   </TableCell>
                   <TableCell>
                     <div className={`font-semibold ${sp.stock <= sp.minStock ? "text-red-600" : ""}`}>
-                      {sp.stock}
+                      {formatQuantity(sp.stock)}
                     </div>
-                    <div className="text-xs text-muted-foreground">Min: {sp.minStock}</div>
+                    <div className="text-xs text-muted-foreground">Min: {formatQuantity(sp.minStock)}</div>
                   </TableCell>
                   <TableCell>
                     <div className={`font-semibold ${(sp.logicalStock ?? sp.stock) < 0 ? "text-red-600" : "text-green-700"}`}>
-                      {sp.logicalStock ?? sp.stock}
+                      {formatQuantity(sp.logicalStock ?? sp.stock)}
                     </div>
                     <div className="text-xs text-muted-foreground">Tersedia</div>
                   </TableCell>
@@ -438,13 +439,13 @@ export default function InventoryPageClient({ initialItems, completeOnly }: { in
                 <div>
                   <span className="text-muted-foreground block text-xs">Fisik / Min</span>
                   <span className={`font-semibold ${sp.stock <= sp.minStock ? "text-red-600" : ""}`}>
-                    {sp.stock} <span className="text-muted-foreground font-normal">/ {sp.minStock}</span>
+                    {formatQuantity(sp.stock)} <span className="text-muted-foreground font-normal">/ {formatQuantity(sp.minStock)}</span>
                   </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-xs">Logis (Avail)</span>
                   <span className={`font-semibold ${(sp.logicalStock ?? sp.stock) < 0 ? "text-red-600" : "text-green-700"}`}>
-                    {sp.logicalStock ?? sp.stock}
+                    {formatQuantity(sp.logicalStock ?? sp.stock)}
                   </span>
                 </div>
               </div>

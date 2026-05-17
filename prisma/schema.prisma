@@ -66,6 +66,9 @@ model Vehicle {
   createdById String?
   createdBy   User?   @relation("UserVehicles", fields: [createdById], references: [id])
 
+  depositBalance Float @default(0)
+  depositLogs    VehicleDepositLog[]
+
   visits Visit[]
 
   createdAt DateTime @default(now())
@@ -129,6 +132,7 @@ model Invoice {
   totalAmount   Decimal       @db.Decimal(12, 2)
   globalDiscount Float        @default(0) // Percentage
   ppn           Float         @default(0) // Percentage
+  usedDeposit   Float         @default(0)
   status        InvoiceStatus @default(UNPAID)
   paymentMethod String?       // CASH, TRANSFER
   notes         String?
@@ -146,7 +150,7 @@ model InvoiceItem {
   sparePartId String?
   sparePart   SparePart? @relation(fields: [sparePartId], references: [id])
   description String
-  quantity    Int       @default(1)
+  quantity    Float     @default(1)
   price       Decimal   @db.Decimal(12, 2)
   discount    Decimal   @default(0) @db.Decimal(12, 2) // Persentase (%)
   amount      Decimal   @db.Decimal(12, 2) // (price * quantity) - discount
@@ -194,8 +198,8 @@ model SparePart {
   categoryId String?
   categoryRel Category?       @relation(fields: [categoryId], references: [id])
   unit       String           @default("Pcs")
-  stock      Int              @default(0)
-  minStock   Int              @default(0)
+  stock      Float            @default(0)
+  minStock   Float            @default(0)
   costPrice  Decimal          @db.Decimal(12, 2)
   supplier   Supplier?        @relation(fields: [supplierId], references: [id])
   supplierId String?
@@ -235,9 +239,9 @@ model InventoryAudit {
   id          String    @id @default(cuid())
   sparePart   SparePart @relation(fields: [sparePartId], references: [id])
   sparePartId String
-  delta       Int
-  before      Int
-  after       Int
+  delta       Float
+  before      Float
+  after       Float
   reason      String
   referenceId String?
   performedBy String?
@@ -250,7 +254,7 @@ model Purchase {
   sparePartId        String?
   sparePartCode      String?
   sparePartName      String?
-  quantity           Int
+  quantity           Float
   unitPrice          Decimal   @default(0) @db.Decimal(12, 2)
   discount           Decimal   @default(0) @db.Decimal(12, 2)
   globalDiscount     Decimal   @default(0) @db.Decimal(12, 2)
@@ -284,7 +288,7 @@ model VisitItem {
   visit       Visit     @relation(fields: [visitId], references: [id], onDelete: Cascade)
   sparePartId String
   sparePart   SparePart @relation(fields: [sparePartId], references: [id])
-  quantity    Int       @default(1)
+  quantity    Float     @default(1)
   price       Float     @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -296,4 +300,18 @@ model VisitItem {
 model SystemCounter {
   key   String @id
   value Int    @default(0)
+}
+
+model VehicleDepositLog {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  amount      Float
+  type        String   // "IN" or "OUT"
+  notes       String?
+  referenceId String?  // e.g. Invoice ID
+  createdAt   DateTime @default(now())
+  createdBy   String?
+
+  @@index([vehicleId])
 }

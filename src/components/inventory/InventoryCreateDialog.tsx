@@ -375,7 +375,7 @@ export default function InventoryCreateDialog({
           {/* MIN STOCK */}
           <div>
             <label className="text-sm">Min. Stock</label>
-            <Input type="number" {...register("minStock", { valueAsNumber: true })} />
+            <Input type="number" step="any" {...register("minStock", { valueAsNumber: true })} />
             {errors.minStock && (
               <div className="text-sm text-red-500">{errors.minStock.message}</div>
             )}

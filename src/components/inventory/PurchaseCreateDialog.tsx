@@ -230,11 +230,11 @@ export default function PurchaseCreateDialog({ open, onOpenChange, onCreated }: 
         <div className="mt-2 grid grid-cols-2 gap-2">
           <div>
             <label className="text-sm mb-1 block">Jumlah</label>
-            <Input type="number" {...register(`items.${idx}.quantity` as const, { valueAsNumber: true })} />
+            <Input type="number" step="any" {...register(`items.${idx}.quantity` as const, { valueAsNumber: true })} />
           </div>
           <div>
             <label className="text-sm mb-1 block">Harga</label>
-            <Input type="number" {...register(`items.${idx}.costPrice` as const, { valueAsNumber: true })} />
+            <Input type="number" step="any" {...register(`items.${idx}.costPrice` as const, { valueAsNumber: true })} />
           </div>
         </div>
 

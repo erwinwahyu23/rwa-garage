@@ -121,7 +121,7 @@ export default function SparePartSelector({ items, onChange, brand, readonly = f
                         </div>
                         <div className="w-20 bg-white">
                             <Input
-                                type="number"
+                                type="number" step="any"
                                 min={1}
                                 value={item.quantity}
                                 onChange={(e) => updateItem(index, "quantity", Number(e.target.value))}

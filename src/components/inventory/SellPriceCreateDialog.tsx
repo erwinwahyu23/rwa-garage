@@ -44,7 +44,7 @@ export default function SellPriceCreateDialog({ open, onOpenChange, sparePartId,
         </DialogHeader>
 
         <Input placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} />
-        <Input placeholder="Price" type="number" value={String(price)} onChange={(e) => setPrice(Number(e.target.value))} />
+        <Input placeholder="Price" type="number" step="any" value={String(price)} onChange={(e) => setPrice(Number(e.target.value))} />
         <Input placeholder="Note" value={note} onChange={(e) => setNote(e.target.value)} />
 
         <Button className="w-full" onClick={submit} disabled={loading || !brand || !price}>

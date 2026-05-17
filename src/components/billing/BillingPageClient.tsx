@@ -12,6 +12,7 @@ import { id } from "date-fns/locale";
 import { Loader2, FileText, CheckCircle, Clock, MessageCircle, FilePlus, Eye, User } from "lucide-react";
 import PaginationControls from "@/components/shared/PaginationControls";
 import { DatePicker } from "@/components/shared/DatePicker";
+import { VehicleDepositDialog } from "./VehicleDepositDialog";
 
 export default function BillingPageClient() {
     const { data: session } = useSession();
@@ -80,6 +81,11 @@ export default function BillingPageClient() {
                         {isAdmin ? "Kelola tagihan dan pembayaran servis." : "Daftar riwayat servis dan status tagihan."}
                     </p>
                 </div>
+                {isAdmin && (
+                    <div className="flex shrink-0">
+                        <VehicleDepositDialog />
+                    </div>
+                )}
             </div>
 
             {/* Filters - Single Row, No Card */}
@@ -131,8 +137,8 @@ export default function BillingPageClient() {
                             <TableHead>No. Polisi</TableHead>
                             <TableHead>Mekanik</TableHead>
                             <TableHead>Status Servis</TableHead>
-                            <TableHead>Status Invoice</TableHead>
                             <TableHead className="text-right">Total</TableHead>
+                            <TableHead>Status Invoice</TableHead>
                             <TableHead className="text-right"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -172,22 +178,6 @@ export default function BillingPageClient() {
                                             {visit.status === "ANTRI" && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 text-[10px] px-2 py-0.5 h-5">ANTRI</Badge>}
                                             {visit.status === "BATAL" && <Badge variant="destructive" className="text-[10px] px-2 py-0.5 h-5">BATAL</Badge>}
                                         </TableCell>
-                                        <TableCell className="align-top">
-                                            {visit.invoices && visit.invoices.length > 0 ? (
-                                                <div className="flex flex-col gap-1 items-start">
-                                                    {visit.invoices.map((inv: any) => (
-                                                        <div key={inv.id} className="flex items-center gap-2">
-                                                            {inv.status === "UNPAID" && <Badge variant="outline" className="border-red-500 text-red-500 text-[10px] px-1 py-0 h-5">Unpaid</Badge>}
-                                                            {inv.status === "PAID" && <Badge variant="outline" className="border-green-500 text-green-500 bg-green-50 text-[10px] px-1 py-0 h-5">Paid</Badge>}
-                                                            {inv.status === "VOID" && <Badge variant="outline" className="border-red-500 text-red-500 bg-red-50 text-[10px] px-1 py-0 h-5">Void</Badge>}
-                                                            <span className="text-[10px] text-muted-foreground">{inv.invoiceNumber}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <Badge variant="outline" className="text-slate-500">Belum Ada</Badge>
-                                            )}
-                                        </TableCell>
                                         <TableCell className="text-right font-medium align-top">
                                             {visit.invoices && visit.invoices.length > 0 ? (
                                                 <div className="flex flex-col gap-1 items-end">
@@ -198,9 +188,29 @@ export default function BillingPageClient() {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                "-"
+                                                <div className="h-5 flex justify-end items-center">-</div>
+                                            )}
+                                            <div className="text-[10px] text-muted-foreground font-normal mt-1 border-t pt-1 border-slate-100 whitespace-nowrap">
+                                                Dep: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(visit.vehicle?.depositBalance || 0)}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="align-top">
+                                            {visit.invoices && visit.invoices.length > 0 ? (
+                                                <div className="flex flex-col gap-1 items-start">
+                                                    {visit.invoices.map((inv: any) => (
+                                                        <div key={inv.id} className="flex items-center gap-2 h-5">
+                                                            {inv.status === "UNPAID" && <Badge variant="outline" className="border-red-500 text-red-500 text-[10px] px-1 py-0 h-4">Unpaid</Badge>}
+                                                            {inv.status === "PAID" && <Badge variant="outline" className="border-green-500 text-green-500 bg-green-50 text-[10px] px-1 py-0 h-4">Paid</Badge>}
+                                                            {inv.status === "VOID" && <Badge variant="outline" className="border-red-500 text-red-500 bg-red-50 text-[10px] px-1 py-0 h-4">Void</Badge>}
+                                                            <span className="text-[10px] text-muted-foreground">{inv.invoiceNumber}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <Badge variant="outline" className="text-slate-500">Belum Ada</Badge>
                                             )}
                                         </TableCell>
+
                                         <TableCell className="text-right align-top">
                                             {isAdmin ? (
                                                 <div className="flex flex-col gap-1 justify-end items-end">
@@ -215,17 +225,24 @@ export default function BillingPageClient() {
                                                                     onClick={() => {
                                                                         const phone = visit.vehicle?.phoneNumber.replace(/\D/g, '').replace(/^0/, '62');
                                                                         const vehicleInfo = `${visit.vehicle?.brand || ''} ${visit.vehicle?.model || ''} / ${visit.vehicle?.licensePlate || ''}`.trim();
-                                                                        const total = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(inv.totalAmount);
+                                                                        const grossAmount = Number(inv.totalAmount);
+                                                                        const deposit = Number(inv.usedDeposit || 0);
+                                                                        const finalAmount = grossAmount - deposit;
+
+                                                                        const formattedGross = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(grossAmount);
+                                                                        const formattedDeposit = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(deposit);
+                                                                        const formattedFinal = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(finalAmount);
                                                                         const owner = visit.vehicle?.ownerName || 'Pelanggan';
 
+                                                                        const invoiceUrl = `${window.location.origin}/invoice/${inv.id}`;
                                                                         let message = "";
-                                                                        
+
                                                                         if (inv.status === "UNPAID") {
-                                                                            message = `*RWA GARAGE*\n\nYth. Bapak/Ibu ${owner},\n\nKami sampaikan invoice untuk pembayaran dengan detail sebagai berikut:\n\nNo. Invoice : ${inv.invoiceNumber}\nKendaraan : ${vehicleInfo}\nTotal Pembayaran : ${total}\n\nPembayaran dapat dilakukan melalui:\n- Cash, atau\n- Transfer ke rekening a/n Komang Restu (BCA: 1462063011)\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
+                                                                            message = `*RWA GARAGE*\n\nYth. Bapak/Ibu ${owner},\n\nKami sampaikan invoice untuk pembayaran dengan detail sebagai berikut:\n\nNo. Invoice : ${inv.invoiceNumber}\nKendaraan : ${vehicleInfo}\nTotal Pembayaran : ${formattedGross}\nDown Payment : ${formattedDeposit}\nSisa Pembayaran : ${formattedFinal}\n\nPembayaran dapat dilakukan melalui:\n- Cash, atau\n- Transfer ke rekening a/n Komang Restu (BCA: 1462063011)\n\nLihat & unduh detail tagihan Anda di sini:\n${invoiceUrl}\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
                                                                         } else {
                                                                             const paidDateObj = inv.paidAt ? new Date(inv.paidAt) : new Date(inv.createdAt);
                                                                             const date = format(paidDateObj, "dd/MM/yyyy");
-                                                                            message = `*RWA GARAGE*\n\nHalo Bapak/Ibu ${owner},\nKami informasikan bahwa pembayaran untuk invoice berikut telah kami terima dengan baik.\n\nNo. Invoice : ${inv.invoiceNumber}\nKendaraan : ${vehicleInfo}\nTotal Dibayarkan : ${total}\nTanggal Pembayaran : ${date}\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
+                                                                            message = `*RWA GARAGE*\n\nHalo Bapak/Ibu ${owner},\nKami informasikan bahwa pembayaran untuk invoice berikut telah kami terima dengan baik.\n\nNo. Invoice : ${inv.invoiceNumber}\nKendaraan : ${vehicleInfo}\nTotal Dibayarkan : ${formattedFinal}\nTanggal Pembayaran : ${date}\n\nLihat & unduh detail tagihan Anda di sini:\n${invoiceUrl}\n\nTerima kasih atas kepercayaan Anda kepada RWA GARAGE.\nSemoga kendaraan Anda selalu dalam kondisi prima.`;
                                                                         }
 
                                                                         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
@@ -337,6 +354,11 @@ export default function BillingPageClient() {
                                     ) : (
                                         <div className="text-sm text-muted-foreground italic">Belum ada invoice</div>
                                     )}
+                                </div>
+
+                                <div className="text-xs text-muted-foreground flex justify-between items-center border-t pt-2">
+                                    <span>Saldo Deposit Kendaraan:</span>
+                                    <span className="font-semibold text-slate-700">Rp {new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(visit.vehicle?.depositBalance || 0)}</span>
                                 </div>
 
                                 {isAdmin && (!invoice || invoice?.status === "VOID") && visit.status === "SELESAI" && (

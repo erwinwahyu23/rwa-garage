@@ -41,14 +41,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         // Only Admin can update properties (Pay, Void)
-        await requireAuth(); // TODO: strict to Admin or Cashier
+        const session = await requireAuth(); // TODO: strict to Admin or Cashier
         // For now requireAuth for broad access, checking role inside if needed
         const { id } = await params;
 
         const body = await req.json();
         const { status, paymentMethod, notes } = body;
 
-        const oldInvoice = await prisma.invoice.findUnique({ where: { id }, include: { invoiceItems: true } });
+        const oldInvoice = await prisma.invoice.findUnique({ where: { id }, include: { invoiceItems: true, visit: true } });
         if (!oldInvoice) return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
 
         // Status Logic
@@ -102,6 +102,25 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
                             }
                         }
                     }
+                }
+
+                // Return Deposit if used
+                if (oldInvoice.usedDeposit > 0 && oldInvoice.visit?.vehicleId) {
+                    await tx.vehicle.update({
+                        where: { id: oldInvoice.visit.vehicleId },
+                        data: { depositBalance: { increment: oldInvoice.usedDeposit } }
+                    });
+
+                    await tx.vehicleDepositLog.create({
+                        data: {
+                            vehicleId: oldInvoice.visit.vehicleId,
+                            amount: oldInvoice.usedDeposit,
+                            type: "IN",
+                            notes: `Pengembalian DP dari pembatalan tagihan ${oldInvoice.invoiceNumber}`,
+                            referenceId: oldInvoice.id,
+                            createdBy: session?.user?.name || "System"
+                        }
+                    });
                 }
             });
 

@@ -9,6 +9,7 @@ const createInvoiceSchema = z.object({
     totalAmount: z.number(),
     globalDiscount: z.number().optional().default(0),
     ppn: z.number().optional().default(0),
+    useDepositAmount: z.number().nonnegative().optional().default(0),
     notes: z.string().optional(),
 });
 
@@ -16,7 +17,10 @@ export async function POST(req: Request) {
     try {
         const session = await requireAdmin();
         const body = await req.json();
-        const { visitId, items, totalAmount, globalDiscount, ppn, notes } = createInvoiceSchema.parse(body);
+        const { visitId, items, totalAmount, globalDiscount, ppn, useDepositAmount, notes } = createInvoiceSchema.parse(body);
+
+        const visitInfo = await prisma.visit.findUnique({ where: { id: visitId }, select: { vehicleId: true } });
+        if (!visitInfo) return NextResponse.json({ error: "Visit not found" }, { status: 404 });
 
         // Check if active invoice exists
         const existing = await prisma.invoice.findFirst({
@@ -86,6 +90,7 @@ export async function POST(req: Request) {
                     totalAmount: totalAmount,
                     globalDiscount: globalDiscount,
                     ppn: ppn,
+                    usedDeposit: useDepositAmount,
                     status: "UNPAID",
                     notes,
                     paymentMethod: null,
@@ -141,6 +146,30 @@ export async function POST(req: Request) {
                         }
                     }
                 }
+            }
+
+            // 4. Deduct Deposit if requested
+            if (useDepositAmount > 0) {
+                const vehicle = await tx.vehicle.findUnique({ where: { id: visitInfo.vehicleId } });
+                if (!vehicle || vehicle.depositBalance < useDepositAmount) {
+                    throw new Error("Saldo deposit tidak mencukupi untuk pemotongan");
+                }
+
+                await tx.vehicle.update({
+                    where: { id: visitInfo.vehicleId },
+                    data: { depositBalance: { decrement: useDepositAmount } }
+                });
+
+                await tx.vehicleDepositLog.create({
+                    data: {
+                        vehicleId: visitInfo.vehicleId,
+                        amount: useDepositAmount,
+                        type: "OUT",
+                        notes: `Digunakan untuk tagihan ${newInvoiceNumber}`,
+                        referenceId: newInvoice.id,
+                        createdBy: session?.user?.name || "System"
+                    }
+                });
             }
 
             return [newInvoice];

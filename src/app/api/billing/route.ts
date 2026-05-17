@@ -108,7 +108,7 @@ export async function GET(req: Request) {
                     vehicle: true,
                     mechanic: { select: { name: true } },
                     invoices: {
-                        select: { id: true, invoiceNumber: true, status: true, totalAmount: true, createdAt: true },
+                        select: { id: true, invoiceNumber: true, status: true, totalAmount: true, usedDeposit: true, createdAt: true },
                         orderBy: { createdAt: 'desc' }
                     }
                 },

@@ -289,7 +289,7 @@ export default function InventoryEditDialog({ open, onOpenChange, item, onUpdate
 
               <div>
                 <label className="text-sm mb-1 block">Min Stock</label>
-                <Input id="minStock" placeholder="0" type="number" {...register("minStock", { valueAsNumber: true })} />
+                <Input id="minStock" placeholder="0" type="number" step="any" {...register("minStock", { valueAsNumber: true })} />
               </div>
             </div>
           </TabsContent>
@@ -309,7 +309,7 @@ export default function InventoryEditDialog({ open, onOpenChange, item, onUpdate
                   <div className="flex-1">
                     <label className="text-xs text-muted-foreground">Harga Jual</label>
                     <Input
-                      type="number"
+                      type="number" step="any"
                       value={newPriceVal}
                       onChange={(e) => setNewPriceVal(e.target.value)}
                       placeholder="Rp 0"

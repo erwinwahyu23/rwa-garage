@@ -2,6 +2,7 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { formatQuantity } from "@/lib/utils";
 
 interface PurchasesReportTableProps {
     data: any[];
@@ -36,7 +37,7 @@ export function PurchasesReportTable({ data, loading }: PurchasesReportTableProp
                                 <TableCell>{item.supplier?.name || "-"}</TableCell>
                                 <TableCell>{item.supplierRefNumber || "-"}</TableCell>
                                 <TableCell>{item.sparePart?.name}</TableCell>
-                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{formatQuantity(item.quantity)}</TableCell>
                                 <TableCell>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(item.costPrice) * item.quantity)}</TableCell>
                             </TableRow>
                         ))}

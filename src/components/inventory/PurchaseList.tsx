@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import PaginationControls from "@/components/shared/PaginationControls";
 import { format } from "date-fns";
+import { formatQuantity } from "@/lib/utils";
 
 type PurchaseItem = {
     id: string;
@@ -159,7 +160,7 @@ export default function PurchaseList() {
                                     <div className="pl-6 border-l-2 border-gray-200 space-y-1 flex-1">
                                         {group.items.slice(0, 3).map((it, i) => (
                                             <div key={i} className="text-sm flex justify-between">
-                                                <span>{it.quantity}x {it.sparePart?.name || it.sparePart?.code}</span>
+                                                <span>{formatQuantity(it.quantity)}x {it.sparePart?.name || it.sparePart?.code}</span>
                                             </div>
                                         ))}
                                         {group.items.length > 3 && (

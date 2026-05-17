@@ -15,6 +15,7 @@ import {
     ArrowRight
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatQuantity } from "@/lib/utils";
 import InventoryPageClient from "./InventoryPageClient";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -171,7 +172,7 @@ export default function InventoryDashboard() {
                                                     </div>
                                                 </div>
                                                 <div className="font-medium text-sm">
-                                                    +{p.quantity} Unit
+                                                    +{formatQuantity(p.quantity)} Unit
                                                 </div>
                                             </div>
                                         ))

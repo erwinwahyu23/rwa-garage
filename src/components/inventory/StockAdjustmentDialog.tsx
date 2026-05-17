@@ -103,7 +103,7 @@ export default function StockAdjustmentDialog({ open, onOpenChange, item, onUpda
                     <div>
                         <Label>Jumlah</Label>
                         <Input
-                            type="number"
+                            type="number" step="any"
                             placeholder="0"
                             value={amount}
                             onChange={e => setAmount(Number(e.target.value))}
