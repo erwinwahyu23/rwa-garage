@@ -14,7 +14,23 @@ export default function PublicInvoiceClient({ invoice }: { invoice: any }) {
     const visit = invoice.visit;
     const isVoid = invoice.status === "VOID";
     const isPaid = invoice.status === "PAID";
-    const lineItems = invoice.invoiceItems || [];
+    let lineItems = invoice.invoiceItems || [];
+    if (lineItems.length === 0 && invoice.items) {
+        let legacyItems = invoice.items;
+        if (typeof legacyItems === 'string') {
+            try { legacyItems = JSON.parse(legacyItems); } catch(e) { legacyItems = []; }
+        }
+        if (Array.isArray(legacyItems)) {
+            lineItems = legacyItems.map((item: any) => ({
+                ...item,
+                description: item.desc || item.description,
+                quantity: item.qty || item.quantity || 1,
+                price: Number(item.price || 0),
+                discount: Number(item.discount || 0),
+                amount: Number(item.amount || (item.price * (item.qty || 1)))
+            }));
+        }
+    }
 
     const subTotal = lineItems.reduce((acc: number, item: any) => acc + Number(item.amount), 0);
     const globalDiscountAmount = subTotal * (Number(invoice.globalDiscount || 0) / 100);

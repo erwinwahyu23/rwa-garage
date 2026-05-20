@@ -195,7 +195,7 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
             } else {
                 setLineItems([]);
             }
-        } else if (invoice?.invoiceItems) {
+        } else if (invoice?.invoiceItems && invoice.invoiceItems.length > 0) {
             // Map InvoiceItem back to UI format
             setLineItems(invoice.invoiceItems.map((item: any) => ({
                 type: item.type,
@@ -206,6 +206,25 @@ export default function InvoiceDetailClient({ invoiceId }: Props) {
                 discount: Number(item.discount),
                 amount: Number(item.amount)
             })));
+        } else if (invoice?.items) {
+            // Fallback for legacy JSON items
+            let legacyItems = invoice.items;
+            if (typeof legacyItems === 'string') {
+                try { legacyItems = JSON.parse(legacyItems); } catch(e) { legacyItems = []; }
+            }
+            if (Array.isArray(legacyItems) && legacyItems.length > 0) {
+                setLineItems(legacyItems.map((item: any) => ({
+                    type: item.type || 'PART',
+                    id: item.id || item.sparePartId,
+                    desc: item.desc || item.description,
+                    qty: item.qty || item.quantity || 1,
+                    price: Number(item.price || 0),
+                    discount: Number(item.discount || 0),
+                    amount: Number(item.amount || (item.price * (item.qty || 1)))
+                })));
+            } else {
+                setLineItems([]);
+            }
         }
     }, [loading, invoice, visit]);
 

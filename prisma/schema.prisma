@@ -136,6 +136,7 @@ model Invoice {
   status        InvoiceStatus @default(UNPAID)
   paymentMethod String?       // CASH, TRANSFER
   notes         String?
+  items         Json?         // Legacy items backup
   paidAt        DateTime?
   invoiceItems  InvoiceItem[]
   createdAt     DateTime      @default(now())
